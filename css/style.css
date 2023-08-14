@@ -2,7 +2,33 @@
 
 /* ! Global styling */
 
+* {
+  font-family: "Press Start 2P", cursive;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  width: 672px;
+  /* background-position: center; */
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 /* ! Header */
+
+header {
+  height: 72px;
+  background-color: black;
+  color: white;
+  display: flex;
+  justify-content: space-around;
+}
 
 /* * Player */
 
@@ -10,9 +36,58 @@
 
 /* ! Main */
 
+main {
+  background-image: url(/images/maze-background.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  height: 744px;
+}
+
+#splash {
+  display: none;
+}
+
 /* * Grid Wrapper */
 
+#grid-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  height: 672px;
+}
+
+.gridItem {
+  outline: 1px solid grey;
+  outline-offset: -1px;
+  /* background-color: black; */
+  color: white;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.pellet {
+  background-image: url(/images/pellet.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.power-pellet {
+  background-image: url(/images/power-pellet.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 /* ! Footer */
+
+footer {
+  height: 48px;
+  background-color: black;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2rem;
+  color: white;
+}
 
 /* * Lives */
 
