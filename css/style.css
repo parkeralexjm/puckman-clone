@@ -15,9 +15,6 @@ body {
 
 .container {
   width: 672px;
-  /* background-position: center; */
-  background-repeat: no-repeat;
-  background-size: cover;
 }
 
 /* ! Header */
@@ -28,6 +25,7 @@ header {
   color: white;
   display: flex;
   justify-content: space-around;
+  user-select: none;
 }
 
 /* * Player */
@@ -41,10 +39,46 @@ main {
   background-repeat: no-repeat;
   background-size: contain;
   height: 744px;
+  user-select: none;
+}
+
+body > h2 {
+  display: none;
+  position: absolute;
+  color: yellow;
+  top: 632px;
+  left: 530px;
 }
 
 #splash {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  /* ? Why cant I put 100% here */
+  height: inherit;
+  background-color: black;
+  text-align: center;
+  padding-top: 300px;
+}
+
+#splash h2 {
+  padding-bottom: 75px;
+}
+
+h2 > span {
+  font-size: 0.8rem;
+}
+
+.beige {
+  color: navajowhite;
+}
+
+.blue {
+  color: aqua;
+}
+
+.peach {
+  color: rgb(228, 206, 214);
 }
 
 /* * Grid Wrapper */
@@ -56,15 +90,10 @@ main {
 }
 
 .gridItem {
-  outline: 1px solid grey;
-  outline-offset: -1px;
-  /* background-color: black; */
-  color: white;
-  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
-    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
-  font-size: 1rem;
-  text-align: center;
+  background-size: contain;
 }
+
+/* ! Class images */
 
 .pellet {
   background-image: url(/images/pellet.png);
@@ -78,6 +107,44 @@ main {
   background-position: center;
 }
 
+.pacman {
+  background-image: url(/images/p-start.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.binky {
+  background-image: url(/images/binky-left1.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.inky {
+  background-image: url(/images/inky-up1.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.pinky {
+  background-image: url(/images/pinky-down1.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.clyde {
+  background-image: url(/images/clyde-up1.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.cherry {
+  background-image: url(/images/bonus/cherry.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 32px;
+  width: 32px;
+}
 /* ! Footer */
 
 footer {
@@ -85,8 +152,10 @@ footer {
   background-color: black;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 0 2rem;
   color: white;
+  user-select: none;
 }
 
 /* * Lives */
