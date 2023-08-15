@@ -251,14 +251,33 @@ function movePacman(event) {
 
 // Logic for 'random' ghost movement, different functions as eventually they have different movements
 function moveBinky() {
-  let blocked = false;
-
   binkyInterval = setInterval(() => {
-    if (!blocked) {
-      const directions = [up[0], down[0], left[0], right[0]];
-      let randomNumber = Math.floor(Math.random() * 4);
-      movementManager(directions[randomNumber], "binky");
+    let binkyKey = [];
+    let binkyUp = positions.binky - width;
+    let binkyDown = positions.binky + width;
+    let binkyLeft = positions.binky - 1;
+    let binkyRight = positions.binky + 1;
+    // Up
+    if (mazeLayout[binkyUp] !== 1 && mazeLayout[binkyUp] !== 3) {
+      binkyKey.push(up[0]);
     }
+    // Down
+    if (mazeLayout[binkyDown] !== 1 && mazeLayout[binkyDown] !== 3) {
+      binkyKey.push(down[0]);
+    }
+    // Left
+    if (mazeLayout[binkyLeft] !== 1 && mazeLayout[binkyLeft] !== 3) {
+      binkyKey.push(left[0]);
+    }
+
+    // Right
+    if (mazeLayout[binkyRight] !== 1 && mazeLayout[binkyRight] !== 3) {
+      binkyKey.push(right[0]);
+    }
+    let randomNumber = Math.floor(Math.random() * binkyKey.length);
+    // Execute movementManager for that direction
+    movementManager(binkyKey[randomNumber], "binky");
+    // movementManager(directions[randomNumber], "binky");
   }, gameSpeed);
 }
 
@@ -445,7 +464,7 @@ function blinkingObjectsStart() {
       element.style.filter = "opacity(1)";
       clearInterval(blinkingInterval);
     }
-  }, 500);
+  }, 700);
 }
 
 function collisionCheck() {
@@ -556,59 +575,5 @@ splashDisplay.addEventListener("click", () => {
 
 // ? Multiple options to change the maze shape (ms Pacman)
 
-// binkyInterval = setInterval(() => {
-//   let binkyKey;
-//   let biggestDistanceToPacman = 100;
-//   let binkyUp = positions.binky - width;
-//   let binkyDown = positions.binky + width;
-//   let binkyLeft = positions.binky - 1;
-//   let binkyRight = positions.binky + 1;
-//   // Up
-//   if (mazeLayout[binkyUp] !== 1 && mazeLayout[binkyUp] !== 3) {
-//     upDistanceToPacman = Math.abs(
-//       Math.ceil(binkyUp / width) - Math.ceil(positions.pacman / width)
-//     );
-//     // console.log("up " + upDistanceToPacman);
-//     biggestDistanceToPacman = upDistanceToPacman;
-//     binkyKey = up[0];
-//   }
-//   // Down
-//   if (mazeLayout[binkyDown] !== 1 && mazeLayout[binkyDown] !== 3) {
-//     downDistanceToPacman = Math.abs(
-//       Math.ceil(binkyDown / width) - Math.ceil(positions.pacman / width)
-//     );
-//     // console.log("down " + downDistanceToPacman);
-//     if (downDistanceToPacman < biggestDistanceToPacman) {
-//       biggestDistanceToPacman = downDistanceToPacman;
-//       binkyKey = down[0];
-//     }
-//   }
-//   // Left
-//   if (mazeLayout[binkyLeft] !== 1 && mazeLayout[binkyLeft] !== 3) {
-//     leftDistanceToPacman = Math.abs(
-//       (binkyLeft % width) + 1 - ((positions.pacman % width) + 1)
-//     );
-//     // console.log("left " + leftDistanceToPacman);
-//     if (leftDistanceToPacman < biggestDistanceToPacman) {
-//       biggestDistanceToPacman = leftDistanceToPacman;
-//       binkyKey = left[0];
-//     }
-//   }
-//   // Right
-//   if (mazeLayout[binkyRight] !== 1 && mazeLayout[binkyRight] !== 3) {
-//     rightDistanceToPacman = Math.abs(
-//       (binkyRight % width) + 1 - ((positions.pacman % width) + 1)
-//     );
-//     // console.log("right " + rightDistanceToPacman);
-//     if (rightDistanceToPacman < biggestDistanceToPacman) {
-//       biggestDistanceToPacman = rightDistanceToPacman;
-//       binkyKey = right[0];
-//     }
-//   }
-
-//   // Execute movementManager for that direction
-//   // movementManager(binkyKey, "binky");
-//   // const directions = [...up, ...down, ...left, ...right];
-//   // let randomNumber = Math.floor(Math.random() * 8);
-//   // movementManager(directions[randomNumber], "binky");
-// }, gameSpeed);
+// downDistanceToPacman = Math.abs(
+//   Math.ceil(binkyDown / width) - Math.ceil(positions.pacman / width)
