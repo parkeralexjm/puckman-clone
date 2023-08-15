@@ -66,17 +66,29 @@ const mazeLayout = [
 // power pellet = 2
 // ghost pen = 3
 // blank = 4
-
 let currentScore = 0;
-let highScore = 0;
-let lives = 3;
+let highScore =
+  localStorage.getItem("highscore") === null
+    ? 0
+    : parseInt(localStorage.getItem("highscore"));
+let lives = 2;
 let ghosts = ["binky", "inky", "pinky", "clyde"];
-let pelletCount = 240; // 240 with power pellets
+let pelletCount = 240;
+let key;
+let moving = false;
+let lastWorkingKey;
 
 // Interval initialisation
-let ghostInterval;
+let binkyInterval;
+let inkyInterval;
+let pinkyInterval;
+let clydeInterval;
+let inkyTimeout;
+let pinkyTimeout;
+let clydeTimeout;
 let backgroundInterval;
 let exitInterval;
+let pacmanMovementInterval;
 
 // Set the initial positions for pacman and the ghosts
 let positions = {
@@ -114,6 +126,8 @@ const up = [38, 87];
 const down = [40, 83];
 const left = [37, 65];
 const right = [39, 68];
+let keyboardLocked = false;
+let blinking = false;
 
 // ! Page Load
 
@@ -145,6 +159,10 @@ function mazeGenerator() {
     gridReference.push(gridItem);
     gridWrapper.append(gridItem);
   }
+  generatePositions();
+}
+
+function generatePositions() {
   // For each character in positions add a class to its starting position
   for (const [key, value] of Object.entries(positions)) {
     addCharacter(value, key);
@@ -154,9 +172,12 @@ function mazeGenerator() {
 function scoreUpdate(amount = 0) {
   currentScoreDisplay.innerHTML = currentScore += amount;
   highScoreDisplay.innerHTML = highScore > currentScore ? highScore : currentScore; // Function this later
-  // setInterval(() => {
-  //   playerNameDisplay.style.opacity = playerNameDisplay.style.opacity == 0 ? 1 : 0;
-  // }, 500);
+  currentScore > highScore && localStorage.setItem("highscore", currentScore);
+  // Award one life when the player gets over 10,000 pts
+  if (currentScore % 10000 === 0 && currentScore < 19900 && currentScore !== 0) {
+    lives++;
+    livesUpdate();
+  }
 }
 
 function livesUpdate(lostLife = 0) {
@@ -171,22 +192,25 @@ function bonusUpdate() {
 
 function gameIntro() {
   splashDisplay.style.display = "none";
+  readyDisplay.style.display = "block";
   mazeGenerator();
   livesUpdate();
   bonusUpdate();
   audio.src = "sounds/pacman_beginning.wav";
   // audio.play();
-  setTimeout(gameStart, 0);
+  setTimeout(gameStart, 0); //4500
 }
 
 function gameStart() {
-  console.log("Game started");
+  blinking = true;
+  blinkingObjectsStart();
+  readyDisplay.style.display = "none";
   document.addEventListener("keydown", movePacman);
-  moveGhost("binky");
+  moveBinky();
   audio.src = "sounds/pacman_chomp.wav";
-  setTimeout(moveGhost("inky"), 5000);
-  setTimeout(moveGhost("pinky"), 10000);
-  setTimeout(moveGhost("clyde"), 15000);
+  inkyTimeout = setTimeout(moveInky, 5000);
+  pinkyTimeout = setTimeout(movePinky, 10000);
+  clydeTimeout = setTimeout(moveClyde, 15000);
 }
 
 function addCharacter(position, character) {
@@ -198,30 +222,152 @@ function removeCharacter(character) {
 }
 
 function movePacman(event) {
-  const key = event.keyCode;
-  movementManager(key, "pacman");
-  const currentPosition = document.getElementById(positions.pacman);
-  if (currentPosition.classList.contains("pellet")) {
-    currentPosition.classList.remove("pellet");
-    pelletCount--;
-    if (pelletCount === 0) {
-      endScreen();
-    }
-    scoreUpdate(100);
-    audio.play();
+  key = event.keyCode;
+
+  if (!moving) {
+    moving = true;
+    pacmanMovementInterval = setInterval(() => {
+      movementManager(key, "pacman");
+      let currentPosition = document.getElementById(positions.pacman);
+      if (currentPosition.classList.contains("pellet")) {
+        currentPosition.classList.remove("pellet");
+        pelletCount--;
+        if (pelletCount === 0) {
+          endScreen();
+        }
+        scoreUpdate(10);
+        audio.play();
+      } else if (currentPosition.classList.contains("power-pellet")) {
+        currentPosition.classList.remove("power-pellet");
+        scoreUpdate(50);
+      }
+    }, gameSpeed * 0.9);
   }
 }
 
-// Logic for 'random' ghost movement
-function moveGhost(ghost) {
-  ghostInterval = setInterval(() => {
-    const directions = [...up, ...down, ...left, ...right];
-    let randomNumber = Math.floor(Math.random() * 8);
-    movementManager(directions[randomNumber], ghost);
+// Logic for 'random' ghost movement, different functions as eventually they have different movements
+function moveBinky() {
+  binkyInterval = setInterval(() => {
+    let binkyKey;
+    let biggestDistanceToPacman = 100;
+    let binkyUp = positions.binky - width;
+    let binkyDown = positions.binky + width;
+    let binkyLeft = positions.binky - 1;
+    let binkyRight = positions.binky + 1;
+    // Up
+    if (mazeLayout[binkyUp] !== 1 && mazeLayout[binkyUp] !== 3) {
+      upDistanceToPacman = Math.abs(
+        Math.ceil(binkyUp / width) - Math.ceil(positions.pacman / width)
+      );
+      // console.log("up " + upDistanceToPacman);
+      biggestDistanceToPacman = upDistanceToPacman;
+      binkyKey = up[0];
+    }
+    // Down
+    if (mazeLayout[binkyDown] !== 1 && mazeLayout[binkyDown] !== 3) {
+      downDistanceToPacman = Math.abs(
+        Math.ceil(binkyDown / width) - Math.ceil(positions.pacman / width)
+      );
+      // console.log("down " + downDistanceToPacman);
+      if (downDistanceToPacman < biggestDistanceToPacman) {
+        biggestDistanceToPacman = downDistanceToPacman;
+        binkyKey = down[0];
+      }
+    }
+    // Left
+    if (mazeLayout[binkyLeft] !== 1 && mazeLayout[binkyLeft] !== 3) {
+      leftDistanceToPacman = Math.abs(
+        (binkyLeft % width) + 1 - ((positions.pacman % width) + 1)
+      );
+      // console.log("left " + leftDistanceToPacman);
+      if (leftDistanceToPacman < biggestDistanceToPacman) {
+        biggestDistanceToPacman = leftDistanceToPacman;
+        binkyKey = left[0];
+      }
+    }
+    // Right
+    if (mazeLayout[binkyRight] !== 1 && mazeLayout[binkyRight] !== 3) {
+      rightDistanceToPacman = Math.abs(
+        (binkyRight % width) + 1 - ((positions.pacman % width) + 1)
+      );
+      // console.log("right " + rightDistanceToPacman);
+      if (rightDistanceToPacman < biggestDistanceToPacman) {
+        biggestDistanceToPacman = rightDistanceToPacman;
+        binkyKey = right[0];
+      }
+    }
+
+    // Execute movementManager for that direction
+    // movementManager(binkyKey, "binky");
+    // const directions = [...up, ...down, ...left, ...right];
+    // let randomNumber = Math.floor(Math.random() * 8);
+    // movementManager(directions[randomNumber], "binky");
   }, gameSpeed);
 }
 
-function movementManager(key, character) {
+function moveInky(character = "inky") {
+  // Do some initial movement to get out of the cage
+  if (document.getElementById("404").classList.contains("inky")) {
+    singleMovement(character, "right");
+    setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed);
+    setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed * 2);
+    setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed * 3);
+  }
+  inkyInterval = setInterval(() => {
+    const directions = [...up, ...down, ...left, ...right];
+    let randomNumber = Math.floor(Math.random() * 8);
+    movementManager(directions[randomNumber], "inky");
+  }, gameSpeed);
+}
+
+function movePinky(character = "pinky") {
+  if (document.getElementById("406").classList.contains("pinky")) {
+    singleMovement(character, "up");
+    setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed);
+    setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed * 2);
+  }
+  pinkyInterval = setInterval(() => {
+    const directions = [...up, ...down, ...left, ...right];
+    let randomNumber = Math.floor(Math.random() * 8);
+    movementManager(directions[randomNumber], "pinky");
+  }, gameSpeed);
+}
+
+function moveClyde(character = "clyde") {
+  // Do some initial movement to get out of the cage
+  if (document.getElementById("408").classList.contains("clyde")) {
+    singleMovement(character, "left");
+    setTimeout(() => {
+      singleMovement(character, "left");
+    }, gameSpeed);
+    setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed * 2);
+    setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed * 3);
+    setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed * 4);
+  }
+  clydeInterval = setInterval(() => {
+    const directions = [...up, ...down, ...left, ...right];
+    let randomNumber = Math.floor(Math.random() * 8);
+    movementManager(directions[randomNumber], "clyde");
+  }, gameSpeed);
+}
+
+function movementManager(key = 37, character) {
   removeCharacter(character);
   if (
     up.includes(key) &&
@@ -229,32 +375,66 @@ function movementManager(key, character) {
     mazeLayout[positions[character] - width] !== 1 &&
     mazeLayout[positions[character] - width] !== 3
   ) {
-    positions[character] -= width;
+    positions[character] -= width; // up
   } else if (
     down.includes(key) &&
     gridSize - 1 >= positions[character] + width &&
     mazeLayout[positions[character] + width] !== 1 &&
     mazeLayout[positions[character] + width] !== 3
   ) {
-    positions[character] += width;
+    positions[character] += width; // down
   } else if (
     left.includes(key) &&
     positions[character] % width !== 0 &&
     mazeLayout[positions[character] - 1] !== 1 &&
     mazeLayout[positions[character] - 1] !== 3
   ) {
-    positions[character]--;
+    positions[character]--; // left
   } else if (
     right.includes(key) &&
     positions[character] % width !== width &&
     mazeLayout[positions[character] + 1] !== 1 &&
     mazeLayout[positions[character] + 1] !== 3
   ) {
-    positions[character]++;
+    positions[character]++; // right
+  } else if (character === "pacman" && key !== lastWorkingKey) {
+    console.log(lastWorkingKey);
+    movementManager(lastWorkingKey, character);
+    addCharacter(positions[character], character);
+    return;
   }
-  // console.log("invalid key")
   addCharacter(positions[character], character);
   collisionCheck();
+  if (character === "pacman") {
+    lastWorkingKey = key;
+  }
+}
+
+function singleMovement(character, direction) {
+  removeCharacter(character);
+  if (direction === "up") {
+    positions[character] -= width; // up
+  } else if (direction === "down") {
+    positions[character] += width; // down
+  } else if (direction === "left") {
+    positions[character]--; // left
+  } else if (direction === "right") {
+    positions[character]++; // right
+  }
+  addCharacter(positions[character], character);
+}
+
+function clearAllIntervals() {
+  clearInterval(binkyInterval);
+  clearInterval(inkyInterval);
+  clearInterval(pinkyInterval);
+  clearInterval(clydeInterval);
+  clearTimeout(inkyTimeout);
+  clearTimeout(pinkyTimeout);
+  clearTimeout(clydeTimeout);
+  clearInterval(pacmanMovementInterval);
+  moving = false;
+  blinking = false;
 }
 
 // If pacman eats all the pellets
@@ -263,7 +443,7 @@ function endScreen() {
   document.removeEventListener("keydown", movePacman);
   gridWrapper.innerHTML = "";
   // Stop ghost movement
-  clearInterval(ghostInterval);
+  clearAllIntervals();
   pelletCount = 240;
   positions = {
     pacman: 657,
@@ -297,8 +477,22 @@ function flashBackground(repeats = 7) {
   }
 }
 
+function blinkingObjectsStart() {
+  let powerPellets = document.getElementsByClassName("power-pellet");
+  let blinkingInterval = setInterval(() => {
+    if (blinking) {
+      [...powerPellets, playerNameDisplay].forEach((element) => {
+        element.style.filter =
+          element.style.filter === "opacity(0)" ? "opacity(1)" : "opacity(0)";
+      });
+    } else {
+      element.style.filter = "opacity(1)";
+      clearInterval(blinkingInterval);
+    }
+  }, 500);
+}
+
 function collisionCheck() {
-  // console.log("collided?");
   if (
     positions.pacman === positions.binky ||
     positions.pacman === positions.inky ||
@@ -311,14 +505,15 @@ function collisionCheck() {
 
 function deathSequence() {
   // game pauses
+  clearAllIntervals();
   document.removeEventListener("keydown", movePacman);
-  clearInterval(ghostInterval);
+
   // play death animation (and plays a sound)
   audio.src = "sounds/pacman_death.wav";
   audio.play();
   deathAnimation();
-  livesUpdate(1);
   if (lives > 0) {
+    livesUpdate(1);
     // Remake the screen but dont change the pellet classes or the count
     setTimeout(() => {
       for (const [key] of Object.entries(positions)) {
@@ -333,8 +528,7 @@ function deathSequence() {
     // Display the ready message for 1 second
     setTimeout(() => {
       gameStart();
-      readyDisplay.style.display = "none";
-    }, 2500);
+    }, 3500);
   } else {
     readyDisplay.style.display = "block";
     readyDisplay.innerHTML = "GAME OVER";
@@ -351,6 +545,7 @@ function deathAnimation(repeats = 1) {
     setTimeout(() => deathAnimation(repeats + 1), 110);
   } else {
     document.getElementsByClassName("pacman")[0].style.backgroundImage = "";
+    document.getElementById(positions.pacman).className = "gridItem";
   }
 }
 
@@ -362,14 +557,6 @@ function resetPosition() {
     pinky: 406,
     clyde: 408,
   };
-}
-
-function leavePen(ghost) {
-  if (ghost === "inky") {
-  } else if (ghost === "clyde") {
-  } else {
-    // Must be binky or pinky
-  }
 }
 
 // Timeout for ghosts staying inside the center
@@ -397,8 +584,6 @@ splashDisplay.addEventListener("click", () => {
 // * ----- STRETCH CONTENT -----
 
 // Ghosts to have complex movement based on their name/'personality'
-
-// Game to store the high score in the local machine
 
 // Boards get more difficult:
 // Game speeds up each time a screen is cleared

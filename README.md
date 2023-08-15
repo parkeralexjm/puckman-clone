@@ -14,6 +14,8 @@ The aim is to achieve the highest score possible before being killed by the ghos
 
 CSS reset from - [CSS reset - Andy Bell](https://andy-bell.co.uk/a-modern-css-reset/)
 
+[Pacman Ghost Mechanics](https://www.youtube.com/watch?v=ataGotQ7ir8&ab_channel=RetroGameMechanicsExplained)
+
 ### HTML
 
 ### CSS
