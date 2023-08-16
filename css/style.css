@@ -102,7 +102,7 @@ h2 > span {
 }
 
 .power-pellet {
-  background-image: url(/images/power-pellet.png);
+  /* background-image: url(/images/power-pellet.png); */
   background-repeat: no-repeat;
   background-position: center;
 }

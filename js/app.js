@@ -43,7 +43,7 @@ const mazeLayout = [
   1, 1, 1, 1, 1, 1, 0, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 0, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 0, 1, 1, 4, 1, 1, 1, 3, 3, 1, 1, 1, 4, 1, 1, 0, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 0, 1, 1, 4, 1, 3, 3, 3, 3, 3, 3, 1, 4, 1, 1, 0, 1, 1, 1, 1, 1, 1,
-  4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 1, 3, 3, 3, 3, 3, 3, 1, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4,
+  5, 5, 5, 5, 5, 5, 0, 4, 4, 4, 1, 3, 3, 3, 3, 3, 3, 1, 4, 4, 4, 0, 5, 5, 5, 5, 5, 5,
   1, 1, 1, 1, 1, 1, 0, 1, 1, 4, 1, 3, 3, 3, 3, 3, 3, 1, 4, 1, 1, 0, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 0, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 0, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 0, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 1, 0, 1, 1, 1, 1, 1, 1,
@@ -66,6 +66,7 @@ const mazeLayout = [
 // power pellet = 2
 // ghost pen = 3
 // blank = 4
+// tunnel = 5
 let currentScore = 0;
 let highScore =
   localStorage.getItem("highscore") === null
@@ -93,6 +94,7 @@ let clydeTimeout;
 let backgroundInterval;
 let exitInterval;
 let pacmanMovementInterval;
+let blinkingInterval;
 
 // Set the initial positions for pacman and the ghosts
 let positions = {
@@ -251,6 +253,7 @@ function movePacman(event) {
 
 // Logic for 'random' ghost movement, different functions as eventually they have different movements
 function moveBinky() {
+  let lastMovement;
   binkyInterval = setInterval(() => {
     let binkyKey = [];
     let binkyUp = positions.binky - width;
@@ -258,26 +261,45 @@ function moveBinky() {
     let binkyLeft = positions.binky - 1;
     let binkyRight = positions.binky + 1;
     // Up
-    if (mazeLayout[binkyUp] !== 1 && mazeLayout[binkyUp] !== 3) {
+    if (
+      mazeLayout[binkyUp] !== 1 &&
+      mazeLayout[binkyUp] !== 3 &&
+      mazeLayout[binkyUp] !== 5 &&
+      lastMovement !== down[0]
+    ) {
       binkyKey.push(up[0]);
     }
     // Down
-    if (mazeLayout[binkyDown] !== 1 && mazeLayout[binkyDown] !== 3) {
+    if (
+      mazeLayout[binkyDown] !== 1 &&
+      mazeLayout[binkyDown] !== 3 &&
+      mazeLayout[binkyDown] !== 5 &&
+      lastMovement !== up[0]
+    ) {
       binkyKey.push(down[0]);
     }
     // Left
-    if (mazeLayout[binkyLeft] !== 1 && mazeLayout[binkyLeft] !== 3) {
+    if (
+      mazeLayout[binkyLeft] !== 1 &&
+      mazeLayout[binkyLeft] !== 3 &&
+      mazeLayout[binkyLeft] !== 5 &&
+      lastMovement !== right[0]
+    ) {
       binkyKey.push(left[0]);
     }
-
     // Right
-    if (mazeLayout[binkyRight] !== 1 && mazeLayout[binkyRight] !== 3) {
+    if (
+      mazeLayout[binkyRight] !== 1 &&
+      mazeLayout[binkyRight] !== 3 &&
+      mazeLayout[binkyRight] !== 5 &&
+      lastMovement !== left[0]
+    ) {
       binkyKey.push(right[0]);
     }
-    let randomNumber = Math.floor(Math.random() * binkyKey.length);
-    // Execute movementManager for that direction
-    movementManager(binkyKey[randomNumber], "binky");
-    // movementManager(directions[randomNumber], "binky");
+    binkyKey.filter((element) => element !== lastMovement);
+    let randomKey = binkyKey[Math.floor(Math.random() * binkyKey.length)];
+    lastMovement = randomKey;
+    movementManager(randomKey, "binky");
   }, gameSpeed);
 }
 
@@ -295,11 +317,56 @@ function moveInky(character = "inky") {
       singleMovement(character, "up");
     }, gameSpeed * 3);
   }
-  inkyInterval = setInterval(() => {
-    const directions = [...up, ...down, ...left, ...right];
-    let randomNumber = Math.floor(Math.random() * 8);
-    movementManager(directions[randomNumber], "inky");
-  }, gameSpeed);
+  setTimeout(() => {
+    let lastMovement;
+    inkyInterval = setInterval(() => {
+      let inkyKey = [];
+      let inkyUp = positions.inky - width;
+      let inkyDown = positions.inky + width;
+      let inkyLeft = positions.inky - 1;
+      let inkyRight = positions.inky + 1;
+      // Up
+      if (
+        mazeLayout[inkyUp] !== 1 &&
+        mazeLayout[inkyUp] !== 3 &&
+        mazeLayout[inkyUp] !== 5 &&
+        lastMovement !== down[0]
+      ) {
+        inkyKey.push(up[0]);
+      }
+      // Down
+      if (
+        mazeLayout[inkyDown] !== 1 &&
+        mazeLayout[inkyDown] !== 3 &&
+        mazeLayout[inkyDown] !== 5 &&
+        lastMovement !== up[0]
+      ) {
+        inkyKey.push(down[0]);
+      }
+      // Left
+      if (
+        mazeLayout[inkyLeft] !== 1 &&
+        mazeLayout[inkyLeft] !== 3 &&
+        mazeLayout[inkyLeft] !== 5 &&
+        lastMovement !== right[0]
+      ) {
+        inkyKey.push(left[0]);
+      }
+      // Right
+      if (
+        mazeLayout[inkyRight] !== 1 &&
+        mazeLayout[inkyRight] !== 3 &&
+        mazeLayout[inkyRight] !== 5 &&
+        lastMovement !== left[0]
+      ) {
+        inkyKey.push(right[0]);
+      }
+      inkyKey.filter((element) => element !== lastMovement);
+      let randomKey = inkyKey[Math.floor(Math.random() * inkyKey.length)];
+      lastMovement = randomKey;
+      movementManager(randomKey, "inky");
+    }, gameSpeed);
+  }, gameSpeed * 4);
 }
 
 function movePinky(character = "pinky") {
@@ -312,11 +379,56 @@ function movePinky(character = "pinky") {
       singleMovement(character, "up");
     }, gameSpeed * 2);
   }
-  pinkyInterval = setInterval(() => {
-    const directions = [...up, ...down, ...left, ...right];
-    let randomNumber = Math.floor(Math.random() * 8);
-    movementManager(directions[randomNumber], "pinky");
-  }, gameSpeed);
+  setTimeout(() => {
+    let lastMovement;
+    pinkyInterval = setInterval(() => {
+      let pinkyKey = [];
+      let pinkyUp = positions.pinky - width;
+      let pinkyDown = positions.pinky + width;
+      let pinkyLeft = positions.pinky - 1;
+      let pinkyRight = positions.pinky + 1;
+      // Up
+      if (
+        mazeLayout[pinkyUp] !== 1 &&
+        mazeLayout[pinkyUp] !== 3 &&
+        mazeLayout[pinkyUp] !== 5 &&
+        lastMovement !== down[0]
+      ) {
+        pinkyKey.push(up[0]);
+      }
+      // Down
+      if (
+        mazeLayout[pinkyDown] !== 1 &&
+        mazeLayout[pinkyDown] !== 3 &&
+        mazeLayout[pinkyDown] !== 5 &&
+        lastMovement !== up[0]
+      ) {
+        pinkyKey.push(down[0]);
+      }
+      // Left
+      if (
+        mazeLayout[pinkyLeft] !== 1 &&
+        mazeLayout[pinkyLeft] !== 3 &&
+        mazeLayout[pinkyLeft] !== 5 &&
+        lastMovement !== right[0]
+      ) {
+        pinkyKey.push(left[0]);
+      }
+      // Right
+      if (
+        mazeLayout[pinkyRight] !== 1 &&
+        mazeLayout[pinkyRight] !== 3 &&
+        mazeLayout[pinkyRight] !== 5 &&
+        lastMovement !== left[0]
+      ) {
+        pinkyKey.push(right[0]);
+      }
+      pinkyKey.filter((element) => element !== lastMovement);
+      let randomKey = pinkyKey[Math.floor(Math.random() * pinkyKey.length)];
+      lastMovement = randomKey;
+      movementManager(randomKey, "pinky");
+    }, gameSpeed);
+  }, gameSpeed * 3);
 }
 
 function moveClyde(character = "clyde") {
@@ -336,16 +448,67 @@ function moveClyde(character = "clyde") {
       singleMovement(character, "up");
     }, gameSpeed * 4);
   }
-  clydeInterval = setInterval(() => {
-    const directions = [...up, ...down, ...left, ...right];
-    let randomNumber = Math.floor(Math.random() * 8);
-    movementManager(directions[randomNumber], "clyde");
-  }, gameSpeed);
+  setTimeout(() => {
+    let lastMovement;
+    clydeInterval = setInterval(() => {
+      let clydeKey = [];
+      let clydeUp = positions.clyde - width;
+      let clydeDown = positions.clyde + width;
+      let clydeLeft = positions.clyde - 1;
+      let clydeRight = positions.clyde + 1;
+      // Up
+      if (
+        mazeLayout[clydeUp] !== 1 &&
+        mazeLayout[clydeUp] !== 3 &&
+        mazeLayout[clydeUp] !== 5 &&
+        lastMovement !== down[0]
+      ) {
+        clydeKey.push(up[0]);
+      }
+      // Down
+      if (
+        mazeLayout[clydeDown] !== 1 &&
+        mazeLayout[clydeDown] !== 3 &&
+        mazeLayout[clydeDown] !== 5 &&
+        lastMovement !== up[0]
+      ) {
+        clydeKey.push(down[0]);
+      }
+      // Left
+      if (
+        mazeLayout[clydeLeft] !== 1 &&
+        mazeLayout[clydeLeft] !== 3 &&
+        mazeLayout[clydeLeft] !== 5 &&
+        lastMovement !== right[0]
+      ) {
+        clydeKey.push(left[0]);
+      }
+      // Right
+      if (
+        mazeLayout[clydeRight] !== 1 &&
+        mazeLayout[clydeRight] !== 3 &&
+        mazeLayout[clydeRight] !== 5 &&
+        lastMovement !== left[0]
+      ) {
+        clydeKey.push(right[0]);
+      }
+      clydeKey.filter((element) => element !== lastMovement);
+      let randomKey = clydeKey[Math.floor(Math.random() * clydeKey.length)];
+      lastMovement = randomKey;
+      movementManager(randomKey, "clyde");
+    }, gameSpeed);
+  }, gameSpeed * 5);
 }
 
 function movementManager(key = 37, character) {
   removeCharacter(character);
-  if (
+  if (left.includes(key) && positions[character] === 392) {
+    // Goes left at the end of the tunnel
+    positions[character] = 419;
+  } else if (right.includes(key) && positions[character] === 419) {
+    // Goes right at the end of the tunnel
+    positions[character] = 392;
+  } else if (
     up.includes(key) &&
     positions[character] >= width &&
     mazeLayout[positions[character] - width] !== 1 &&
@@ -378,6 +541,8 @@ function movementManager(key = 37, character) {
     addCharacter(positions[character], character);
     return;
   }
+  // Move character to the other end of the tunnel
+
   addCharacter(positions[character], character);
   collisionCheck();
   if (character === "pacman") {
@@ -408,8 +573,9 @@ function clearAllIntervals() {
   clearTimeout(pinkyTimeout);
   clearTimeout(clydeTimeout);
   clearInterval(pacmanMovementInterval);
-  moving = false;
   blinking = false;
+  clearInterval(blinkingInterval);
+  moving = false;
 }
 
 // If pacman eats all the pellets
@@ -454,14 +620,15 @@ function flashBackground(repeats = 7) {
 
 function blinkingObjectsStart() {
   let powerPellets = document.getElementsByClassName("power-pellet");
-  let blinkingInterval = setInterval(() => {
+  blinkingInterval = setInterval(() => {
     if (blinking) {
-      [...powerPellets, playerNameDisplay].forEach((element) => {
-        element.style.filter =
-          element.style.filter === "opacity(0)" ? "opacity(1)" : "opacity(0)";
+      playerNameDisplay.style.filter =
+        playerNameDisplay.style.filter === "opacity(1)" ? "opacity(0)" : "opacity(1)";
+      [...powerPellets].forEach((element) => {
+        element.style.backgroundImage =
+          element.style.backgroundImage === "" ? "url(/images/power-pellet.png)" : "";
       });
     } else {
-      element.style.filter = "opacity(1)";
       clearInterval(blinkingInterval);
     }
   }, 700);
