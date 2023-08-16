@@ -90,6 +90,7 @@ let inkyLastMovement;
 let pinkyLastMovement;
 let clydeLastMovement;
 let chase = false;
+let ghostMode = "chase";
 let ghostsEaten = 1;
 
 // Interval initialisation
@@ -114,15 +115,6 @@ let positions = {
   pinky: 406,
   clyde: 408,
 };
-// ghosts.map((ghost) => {
-//   let ghostAttributes = {}
-//   ghostAttributes.name = ghost
-//   ghostAttributes.upImage
-//   ghostAttributes.downImage
-//   ghostAttributes.leftImage
-//   ghostAttributes.rightImage
-// })
-
 // let bonus = [
 //   { name: "cherry", value: 100 },
 //   { name: "strawberry", value: 300 },
@@ -224,7 +216,7 @@ function gameIntro() {
 
 function gameStart() {
   blinking = true;
-  chase = false;
+  ghostMode = "chase";
   blinkingObjectsStart();
   readyDisplay.style.display = "none";
   document.addEventListener("keydown", movePacman);
@@ -236,14 +228,14 @@ function gameStart() {
 }
 
 function addCharacter(position, character) {
-  if (ghosts.includes(character) && chase) {
+  if (ghosts.includes(character) && ghostMode === "frightened") {
     gridReference[position].classList.add("scared");
     gridReference[position].classList.add(character);
   } else gridReference[position].classList.add(character);
 }
 
 function removeCharacter(character) {
-  if (ghosts.includes(character) && chase) {
+  if (ghosts.includes(character) && ghostMode === "frightened") {
     gridReference[positions[character]].classList.remove(character);
     gridReference[positions[character]].classList.remove("scared");
   } else gridReference[positions[character]].classList.remove(character);
@@ -270,7 +262,7 @@ function movePacman(event) {
         currentPosition.classList.remove("power-pellet");
         currentPosition.style.backgroundImage = ""; // Override the blinking image
         scoreUpdate(50);
-        chaseTrigger();
+        frightenedTrigger();
       }
     }, gameSpeed * 0.9);
   }
@@ -599,7 +591,7 @@ function clearAllIntervals() {
   clearInterval(blinkingInterval);
   clearTimeout(chaseTimeout);
   moving = false;
-  chase = false;
+  ghostMode = "chase";
 }
 
 // If pacman eats all the pellets
@@ -659,13 +651,13 @@ function blinkingObjectsStart() {
 }
 
 function collisionCheck() {
-  if (positions.pacman === positions.binky && chase) {
+  if (positions.pacman === positions.binky && ghostMode === "frightened") {
     ghostDeath("binky");
-  } else if (positions.pacman === positions.inky && chase) {
+  } else if (positions.pacman === positions.inky && ghostMode === "frightened") {
     ghostDeath("inky");
-  } else if (positions.pacman === positions.pinky && chase) {
+  } else if (positions.pacman === positions.pinky && ghostMode === "frightened") {
     ghostDeath("pinky");
-  } else if (positions.pacman === positions.clyde && chase) {
+  } else if (positions.pacman === positions.clyde && ghostMode === "frightened") {
     ghostDeath("clyde");
   } else if (
     positions.pacman === positions.binky ||
@@ -707,7 +699,6 @@ function deathSequence() {
     readyDisplay.style.display = "block";
     readyDisplay.innerHTML = "GAME OVER";
     readyDisplay.style.color = "red";
-    readyDisplay.style.left = "490px";
   }
 }
 
@@ -733,13 +724,13 @@ function resetPosition() {
   };
 }
 
-function chaseTrigger() {
-  chase = true; // Turn on chase mode
+function frightenedTrigger() {
+  ghostMode = "frightened";
   ghostsEaten = 1;
   audioIntermission.src = "/sounds/pacman_intermission.wav";
   audioIntermission.play();
-  setTimeout(() => {
-    chase = false;
+  chaseTimeout = setTimeout(() => {
+    ghostMode = "chase";
   }, 5500);
   // Change all the ghosts to blue for 10 seconds
 }
@@ -791,13 +782,8 @@ splashDisplay.addEventListener("click", () => {
 // Trigger events on keypress see line 171
 
 // * ----- STRETCH CONTENT -----
-// Pacman and power pellet - change ghost behaviour
 
 // Ghosts to have complex movement based on their name/'personality'
-
-// Boards get more difficult:
-// Game speeds up each time a screen is cleared
-// Ghosts spend less time in 'scared' mode after power pellet
 
 // Research timings for fruit appearing and score etc.
 // Pacman and bonuses
@@ -805,11 +791,13 @@ splashDisplay.addEventListener("click", () => {
 // Blinky - always takes the shortest path to pacman
 // Pinky - tries to get to the point 4 spaces in front of pacman
 // Inky
-// Clyde - True random movement
+// Clyde -
 
-// Make pacman have movement that is more consistent with the real game
+// Ghost modes
+// Scatter
 
-// ? Multiple options to change the maze shape (ms Pacman)
+// Chase
 
-// downDistanceToPacman = Math.abs(
-//   Math.ceil(binkyDown / width) - Math.ceil(positions.pacman / width)
+// Frightened
+
+// Eaten
