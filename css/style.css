@@ -153,6 +153,7 @@ h2 > span {
   height: 32px;
   width: 32px;
 }
+
 /* ! Footer */
 
 footer {
@@ -167,5 +168,18 @@ footer {
 }
 
 /* * Lives */
+
+#lives {
+  display: flex;
+}
+
+.life {
+  background-image: url(/images/p-left1.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 32px;
+  width: 32px;
+}
 
 /* * Bonus */
