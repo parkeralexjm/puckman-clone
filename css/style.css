@@ -46,8 +46,7 @@ body > h2 {
   display: none;
   position: absolute;
   color: yellow;
-  top: 840px;
-  left: 530px;
+  margin-top: 120px;
 }
 
 #splash {
@@ -108,13 +107,22 @@ h2 > span {
 }
 
 .pacman {
-  background-image: url(/images/p-start.png);
+  background-image: url(/images/p-left1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .binky {
   background-image: url(/images/binky-left1.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.binky.scared,
+.inky.scared,
+.pinky.scared,
+.clyde.scared {
+  background-image: url(/images/scared-blue1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
