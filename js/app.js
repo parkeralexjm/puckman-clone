@@ -225,7 +225,7 @@ function gameIntro() {
   audio.src = "sounds/pacman_beginning.wav";
   audio.play();
   level = 1;
-  setTimeout(gameStart, 0); //4500
+  setTimeout(gameStart, 4500);
 } // Refactored
 
 function gameStart() {
@@ -302,7 +302,7 @@ function movePacman(event) {
         }
         fruitAudio.play();
       }
-    }, gameSpeed * 0.9);
+    }, pacmanSpeed * 0.9);
   }
 }
 
@@ -528,7 +528,9 @@ function moveInky(character = "inky") {
 function movePinky(character = "pinky") {
   if (document.getElementById("406").classList.contains("pinky")) {
     singleMovement(character, "up");
+    pinky.position = 378;
     setTimeout(() => {
+      pinky.position = 350;
       singleMovement(character, "up");
     }, gameSpeed);
   }
