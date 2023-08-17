@@ -16,6 +16,8 @@ CSS reset from - [CSS reset - Andy Bell](https://andy-bell.co.uk/a-modern-css-re
 
 [Pacman Ghost Mechanics](https://www.youtube.com/watch?v=ataGotQ7ir8&ab_channel=RetroGameMechanicsExplained)
 
+Write down
+
 ### HTML
 
 ### CSS

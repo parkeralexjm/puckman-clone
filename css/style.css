@@ -112,13 +112,13 @@ h2 > span {
   background-position: center;
 }
 
-.binky {
-  background-image: url(/images/binky-left1.png);
+.blinky {
+  background-image: url(/images/blinky-left1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
-.binky.scared,
+.blinky.scared,
 .inky.scared,
 .pinky.scared,
 .clyde.scared {
@@ -147,6 +147,69 @@ h2 > span {
 
 .cherry {
   background-image: url(/images/bonus/cherry.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 32px;
+  width: 32px;
+}
+
+.strawberry {
+  background-image: url(/images/bonus/strawberry.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 32px;
+  width: 32px;
+}
+
+.orange {
+  background-image: url(/images/bonus/orange.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 32px;
+  width: 32px;
+}
+
+.apple {
+  background-image: url(/images/bonus/apple.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 32px;
+  width: 32px;
+}
+
+.melon {
+  background-image: url(/images/bonus/melon.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 32px;
+  width: 32px;
+}
+
+.galaxian {
+  background-image: url(/images/bonus/galaxian.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 32px;
+  width: 32px;
+}
+
+.bell {
+  background-image: url(/images/bonus/bell.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 32px;
+  width: 32px;
+}
+
+.key {
+  background-image: url(/images/bonus/key.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;

@@ -20,7 +20,9 @@ const backgroundDisplay = document.querySelector("main");
 const readyDisplay = document.getElementById("ready");
 
 const audio = document.createElement("audio");
+const fruitAudio = document.createElement("audio");
 const audioIntermission = document.createElement("audio");
+fruitAudio.volume = 0.5;
 audio.volume = 0.5;
 audioIntermission.volume = 0.5;
 
@@ -76,25 +78,29 @@ let highScore =
     ? 0
     : parseInt(localStorage.getItem("highscore"));
 let lives = 2;
-let ghosts = ["binky", "inky", "pinky", "clyde"];
+let ghosts = ["blinky", "inky", "pinky", "clyde"];
 let pelletCount = 240;
 let key;
+let level;
 let moving = false;
-let binkyMoving = false;
+let blinkyMoving = false;
 let inkyMoving = false;
 let pinkyMoving = false;
 let clydeMoving = false;
 let lastWorkingKey;
-let binkyLastMovement;
+let blinkyLastMovement;
 let inkyLastMovement;
 let pinkyLastMovement;
 let clydeLastMovement;
 let chase = false;
-let ghostMode = "chase";
+let ghostMode;
 let ghostsEaten = 1;
+let fruitCounter = 0;
+let gameClock = 0;
 
 // Interval initialisation
-let binkyInterval;
+let gameClockInterval;
+let blinkyInterval;
 let inkyInterval;
 let pinkyInterval;
 let clydeInterval;
@@ -110,21 +116,21 @@ let chaseTimeout;
 // Set the initial positions for pacman and the ghosts
 let positions = {
   pacman: 657,
-  binky: 321,
+  blinky: 321,
   inky: 404,
   pinky: 406,
   clyde: 408,
 };
-// let bonus = [
-//   { name: "cherry", value: 100 },
-//   { name: "strawberry", value: 300 },
-//   { name: "orange", value: 500 },
-//   { name: "apple", value: 700 },
-//   { name: "melon", value: 1000 },
-//   { name: "galaxian", value: 2000 },
-//   { name: "bell", value: 3000 },
-//   { name: "key", value: 5000 },
-// ];
+let bonuses = [
+  { name: "cherry", value: 100 },
+  { name: "strawberry", value: 300 },
+  { name: "orange", value: 500 },
+  { name: "apple", value: 700 },
+  { name: "melon", value: 1000 },
+  { name: "galaxian", value: 2000 },
+  { name: "bell", value: 3000 },
+  { name: "key", value: 5000 },
+];
 
 // Game speed (feed this in as the variable in intervals)
 let gameSpeed = 300;
@@ -136,6 +142,7 @@ const left = [37, 65];
 const right = [39, 68];
 let keyboardLocked = false;
 let blinking = false;
+let activeGame = false;
 
 // ! Page Load
 
@@ -211,20 +218,25 @@ function gameIntro() {
   bonusUpdate();
   audio.src = "sounds/pacman_beginning.wav";
   audio.play();
-  setTimeout(gameStart, 4500); //4500
+  level = 1;
+  setTimeout(gameStart, 0); //4500
 }
 
 function gameStart() {
   blinking = true;
-  ghostMode = "chase";
+  activeGame = true;
+  ghostMode = "scatter";
   blinkingObjectsStart();
   readyDisplay.style.display = "none";
   document.addEventListener("keydown", movePacman);
-  moveBinky();
+  moveBlinky();
   audio.src = "sounds/pacman_chomp.wav";
+  fruitAudio.src = "sounds/pacman_eatfruit.wav";
   inkyTimeout = setTimeout(moveInky, 5000);
   pinkyTimeout = setTimeout(movePinky, 10000);
   clydeTimeout = setTimeout(moveClyde, 15000);
+  gameTimings();
+  gameClock = 0;
 }
 
 function addCharacter(position, character) {
@@ -256,6 +268,15 @@ function movePacman(event) {
         if (pelletCount === 0) {
           endScreen();
         }
+        if (pelletCount === 170) {
+          generateFruit();
+        }
+        if (
+          pelletCount === 70 &&
+          !document.getElementById("489").classList.contains("fruit")
+        ) {
+          generateFruit();
+        }
         scoreUpdate(10);
         audio.play();
       } else if (currentPosition.classList.contains("power-pellet")) {
@@ -263,64 +284,120 @@ function movePacman(event) {
         currentPosition.style.backgroundImage = ""; // Override the blinking image
         scoreUpdate(50);
         frightenedTrigger();
+      } else if (currentPosition.classList.contains("fruit")) {
+        currentPosition.classList.remove("fruit");
+        for (const [key, value] of Object.entries(bonuses)) {
+          bonuses.forEach((fruit) => {
+            if (currentPosition.classList.contains(fruit.name)) {
+              scoreUpdate(fruit.value);
+            }
+            currentPosition.classList.remove(fruit.name);
+          });
+        }
+        fruitAudio.play();
       }
     }, gameSpeed * 0.9);
   }
 }
 
 // Logic for 'random' ghost movement, different functions as eventually they have different movements
-function moveBinky() {
-  binkyInterval = setInterval(() => {
-    let binkyKey = [];
-    let binkyUp = positions.binky - width;
-    let binkyDown = positions.binky + width;
-    let binkyLeft = positions.binky - 1;
-    let binkyRight = positions.binky + 1;
+function moveBlinky() {
+  blinkyInterval = setInterval(() => {
+    let blinkyKey = [];
+    let blinkyCalc = {};
+    let blinkyUp = positions.blinky - width;
+    let blinkyDown = positions.blinky + width;
+    let blinkyLeft = positions.blinky - 1;
+    let blinkyRight = positions.blinky + 1;
     // Up
     if (
-      mazeLayout[binkyUp] !== 1 &&
-      mazeLayout[binkyUp] !== 3 &&
-      mazeLayout[binkyUp] !== 5 &&
-      binkyLastMovement !== down[0]
+      mazeLayout[blinkyUp] !== 1 &&
+      mazeLayout[blinkyUp] !== 3 &&
+      mazeLayout[blinkyUp] !== 5 &&
+      blinkyLastMovement !== down[0]
     ) {
-      binkyKey.push(up[0]);
+      blinkyKey.push(up[0]);
+      blinkyCalc[blinkyUp] = up[0];
     }
     // Down
     if (
-      mazeLayout[binkyDown] !== 1 &&
-      mazeLayout[binkyDown] !== 3 &&
-      mazeLayout[binkyDown] !== 5 &&
-      binkyLastMovement !== up[0]
+      mazeLayout[blinkyDown] !== 1 &&
+      mazeLayout[blinkyDown] !== 3 &&
+      mazeLayout[blinkyDown] !== 5 &&
+      blinkyLastMovement !== up[0]
     ) {
-      binkyKey.push(down[0]);
+      blinkyKey.push(down[0]);
+      blinkyCalc[blinkyDown] = down[0];
     }
     // Left
     if (
-      mazeLayout[binkyLeft] !== 1 &&
-      mazeLayout[binkyLeft] !== 3 &&
-      mazeLayout[binkyLeft] !== 5 &&
-      binkyLastMovement !== right[0]
+      mazeLayout[blinkyLeft] !== 1 &&
+      mazeLayout[blinkyLeft] !== 3 &&
+      mazeLayout[blinkyLeft] !== 5 &&
+      blinkyLastMovement !== right[0]
     ) {
-      binkyKey.push(left[0]);
+      blinkyKey.push(left[0]);
+      blinkyCalc[blinkyLeft] = left[0];
     }
     // Right
     if (
-      mazeLayout[binkyRight] !== 1 &&
-      mazeLayout[binkyRight] !== 3 &&
-      mazeLayout[binkyRight] !== 5 &&
-      binkyLastMovement !== left[0]
+      mazeLayout[blinkyRight] !== 1 &&
+      mazeLayout[blinkyRight] !== 3 &&
+      mazeLayout[blinkyRight] !== 5 &&
+      blinkyLastMovement !== left[0]
     ) {
-      binkyKey.push(right[0]);
+      blinkyKey.push(right[0]);
+      blinkyCalc[blinkyRight] = right[0];
     }
-    binkyKey.filter((element) => element !== binkyLastMovement);
-    let randomKey = binkyKey[Math.floor(Math.random() * binkyKey.length)];
-    binkyLastMovement = randomKey;
-    movementManager(randomKey, "binky");
+    blinkyKey.filter((element) => element !== blinkyLastMovement); // This prevents the ghost from reversing itself
+    let randomKey = blinkyKey[Math.floor(Math.random() * blinkyKey.length)]; // This picks a random direction from the available
+
+    if (ghostMode === "frightened") {
+      blinkyLastMovement = randomKey; // Put this before movementManager
+      movementManager(randomKey, "blinky");
+    } else if (ghostMode === "chase") {
+      moveTowardsTarget(positions.pacman, "blinky", blinkyCalc); // blinkys target is pacmans position
+    } else if (ghostMode === "scatter") {
+      moveTowardsTarget(54, "blinky", blinkyCalc);
+    }
   }, gameSpeed);
 }
 
+function moveTowardsTarget(target, character, directionObject) {
+  // compare row ** 2 + column ** 2
+  let towardsKey;
+  let lowestDistance = 100000;
+  for (const [position, direction] of Object.entries(directionObject)) {
+    // Get the row and column for blinky and pacman
+    let targetColumn = (target % width) + 1;
+    let targetRow = Math.ceil(target / width);
+    let characterColumn = (position % width) + 1;
+    let characterRow = Math.ceil(position / width);
+    // Find the distance between the rows and columns
+    let distanceColumn = Math.abs(targetColumn - characterColumn);
+    let distanceRow = Math.abs(targetRow - characterRow);
+    // Use pythagorus to get the straight line distance
+    let distance = distanceColumn ** 2 + distanceRow ** 2;
+    // If the distance is shorter then set towardsKey to the direction of the lowest distance
+    if (distance < lowestDistance) {
+      lowestDistance = distance;
+      towardsKey = direction;
+      // Prevent backtracing
+      if (character === "blinky") {
+        blinkyLastMovement = towardsKey;
+      } else if (character === "inky") {
+        inkyLastMovement = towardsKey;
+      } else if (character === "pinky") {
+        pinkyLastMovement = towardsKey;
+      } else if (character === "clyde") {
+        clydeLastMovement = towardsKey;
+      }
+    }
+  }
+  movementManager(towardsKey, character);
+}
+
 function moveInky(character = "inky") {
-  console.log("inky started");
   // Do some initial movement to get out of the cage
   if (document.getElementById("404").classList.contains("inky")) {
     singleMovement(character, "right");
@@ -330,59 +407,116 @@ function moveInky(character = "inky") {
     setTimeout(() => {
       singleMovement(character, "up");
     }, gameSpeed * 1.9);
-    // setTimeout(() => {
-    //   singleMovement(character, "up");
-    // }, gameSpeed * 2.8);
   }
-  setTimeout(() => {
-    inkyInterval = setInterval(() => {
-      let inkyKey = [];
-      let inkyUp = positions.inky - width;
-      let inkyDown = positions.inky + width;
-      let inkyLeft = positions.inky - 1;
-      let inkyRight = positions.inky + 1;
-      // Up
-      if (
-        mazeLayout[inkyUp] !== 1 &&
-        mazeLayout[inkyUp] !== 3 &&
-        mazeLayout[inkyUp] !== 5 &&
-        inkyLastMovement !== down[0]
-      ) {
-        inkyKey.push(up[0]);
-      }
-      // Down
-      if (
-        mazeLayout[inkyDown] !== 1 &&
-        mazeLayout[inkyDown] !== 3 &&
-        mazeLayout[inkyDown] !== 5 &&
-        inkyLastMovement !== up[0]
-      ) {
-        inkyKey.push(down[0]);
-      }
-      // Left
-      if (
-        mazeLayout[inkyLeft] !== 1 &&
-        mazeLayout[inkyLeft] !== 3 &&
-        mazeLayout[inkyLeft] !== 5 &&
-        inkyLastMovement !== right[0]
-      ) {
-        inkyKey.push(left[0]);
-      }
-      // Right
-      if (
-        mazeLayout[inkyRight] !== 1 &&
-        mazeLayout[inkyRight] !== 3 &&
-        mazeLayout[inkyRight] !== 5 &&
-        inkyLastMovement !== left[0]
-      ) {
-        inkyKey.push(right[0]);
-      }
-      inkyKey.filter((element) => element !== inkyLastMovement);
-      let randomKey = inkyKey[Math.floor(Math.random() * inkyKey.length)];
-      inkyLastMovement = randomKey;
+  inkyInterval = setInterval(() => {
+    let inkyTarget;
+    let inkyKey = [];
+    let inkyCalc = {};
+    let inkyUp = positions.inky - width;
+    let inkyDown = positions.inky + width;
+    let inkyLeft = positions.inky - 1;
+    let inkyRight = positions.inky + 1;
+    // Up
+    if (
+      mazeLayout[inkyUp] !== 1 &&
+      mazeLayout[inkyUp] !== 3 &&
+      mazeLayout[inkyUp] !== 5 &&
+      inkyLastMovement !== down[0]
+    ) {
+      inkyKey.push(up[0]);
+      inkyCalc[inkyUp] = up[0];
+    }
+    // Down
+    if (
+      mazeLayout[inkyDown] !== 1 &&
+      mazeLayout[inkyDown] !== 3 &&
+      mazeLayout[inkyDown] !== 5 &&
+      inkyLastMovement !== up[0]
+    ) {
+      inkyKey.push(down[0]);
+      inkyCalc[inkyDown] = down[0];
+    }
+    // Left
+    if (
+      mazeLayout[inkyLeft] !== 1 &&
+      mazeLayout[inkyLeft] !== 3 &&
+      mazeLayout[inkyLeft] !== 5 &&
+      inkyLastMovement !== right[0]
+    ) {
+      inkyKey.push(left[0]);
+      inkyCalc[inkyLeft] = left[0];
+    }
+    // Right
+    if (
+      mazeLayout[inkyRight] !== 1 &&
+      mazeLayout[inkyRight] !== 3 &&
+      mazeLayout[inkyRight] !== 5 &&
+      inkyLastMovement !== left[0]
+    ) {
+      inkyKey.push(right[0]);
+      inkyCalc[inkyRight] = right[0];
+    }
+    inkyKey.filter((element) => element !== inkyLastMovement); // This prevents the ghost from reversing itself
+    let randomKey = inkyKey[Math.floor(Math.random() * inkyKey.length)]; // This picks a random direction from the available
+    // set the last movement to this movement then trigger the movement
+
+    // Calculate inkyTarget based on pacman movement - inky targets blinkys position mirrored through a space 2  in front of pacman
+    // find the columns and rows between blinky and pacman + 2
+    let blinkyRow = Math.ceil(positions.blinky / width);
+    let blinkyColumn = (positions.blinky % width) + 1;
+    let inkyTargetRow;
+    let inkyTargetColumn;
+    // add the column and rows to pacman + 2 which is inkys target
+
+    // If pacman facing up
+    if (up.includes(key)) {
+      inkyTargetRow = Math.ceil((positions.pacman - width * 2 - 2) / width);
+      inkyTargetColumn = ((positions.pacman - width * 2 - 2) % width) + 1;
+      inkyTargetRow = blinkyRow - inkyTargetRow;
+      inkyTargetColumn = blinkyColumn - inkyTargetColumn;
+      inkyTargetRow =
+        Math.ceil((positions.pacman - width * 2 - 2) / width) - inkyTargetRow;
+      inkyTargetColumn =
+        ((positions.pacman - width * 2 - 2) % width) + 1 - inkyTargetColumn;
+    } else if (down.includes(key)) {
+      // If pacman facing down
+      inkyTargetRow = Math.ceil((positions.pacman + width * 2) / width);
+      inkyTargetColumn = ((positions.pacman + width * 2) % width) + 1;
+      inkyTargetRow = blinkyRow - inkyTargetRow;
+      inkyTargetColumn = blinkyColumn - inkyTargetColumn;
+      inkyTargetRow =
+        Math.ceil((positions.pacman + width * 2) / width) - inkyTargetRow;
+      inkyTargetColumn =
+        ((positions.pacman + width * 2) % width) + 1 - inkyTargetColumn;
+    } else if (left.includes(key)) {
+      // If pacman facing left
+      inkyTargetRow = Math.ceil((positions.pacman - 2) / width);
+      inkyTargetColumn = ((positions.pacman - 2) % width) + 1;
+      inkyTargetRow = blinkyRow - inkyTargetRow;
+      inkyTargetColumn = blinkyColumn - inkyTargetColumn;
+      inkyTargetRow = Math.ceil((positions.pacman - 2) / width) - inkyTargetRow;
+      inkyTargetColumn = ((positions.pacman - 2) % width) + 1 - inkyTargetColumn;
+    } else if (right.includes(key)) {
+      // If pacman facing right
+      inkyTargetRow = Math.ceil((positions.pacman + 2) / width);
+      inkyTargetColumn = ((positions.pacman + 2) % width) + 1;
+      inkyTargetRow = blinkyRow - inkyTargetRow;
+      inkyTargetColumn = blinkyColumn - inkyTargetColumn;
+      inkyTargetRow = Math.ceil((positions.pacman + 2) / width) - inkyTargetRow;
+      inkyTargetColumn = ((positions.pacman + 2) % width) + 1 - inkyTargetColumn;
+    }
+    // Convert the absolute values for row and column back into a position
+    inkyTarget = (inkyTargetRow - 1) * width + Math.abs(inkyTargetColumn);
+
+    if (ghostMode === "frightened") {
+      inkyLastMovement = randomKey; // Put this before movementManager
       movementManager(randomKey, "inky");
-    }, gameSpeed);
-  }, gameSpeed * 3.8);
+    } else if (ghostMode === "chase") {
+      moveTowardsTarget(inkyTarget, "inky", inkyCalc);
+    } else if (ghostMode === "scatter") {
+      moveTowardsTarget(838, "inky", inkyCalc);
+    }
+  }, gameSpeed);
 }
 
 function movePinky(character = "pinky") {
@@ -391,66 +525,89 @@ function movePinky(character = "pinky") {
     setTimeout(() => {
       singleMovement(character, "up");
     }, gameSpeed);
-    // setTimeout(() => {
-    //   singleMovement(character, "up");
-    // }, gameSpeed * 2);
   }
-  setTimeout(() => {
-    pinkyInterval = setInterval(() => {
-      let pinkyKey = [];
-      let pinkyUp = positions.pinky - width;
-      let pinkyDown = positions.pinky + width;
-      let pinkyLeft = positions.pinky - 1;
-      let pinkyRight = positions.pinky + 1;
-      // Up
-      if (
-        mazeLayout[pinkyUp] !== 1 &&
-        mazeLayout[pinkyUp] !== 3 &&
-        mazeLayout[pinkyUp] !== 5 &&
-        pinkyLastMovement !== down[0]
-      ) {
-        pinkyKey.push(up[0]);
-      }
-      // Down
-      if (
-        mazeLayout[pinkyDown] !== 1 &&
-        mazeLayout[pinkyDown] !== 3 &&
-        mazeLayout[pinkyDown] !== 5 &&
-        pinkyLastMovement !== up[0]
-      ) {
-        pinkyKey.push(down[0]);
-      }
-      // Left
-      if (
-        mazeLayout[pinkyLeft] !== 1 &&
-        mazeLayout[pinkyLeft] !== 3 &&
-        mazeLayout[pinkyLeft] !== 5 &&
-        pinkyLastMovement !== right[0]
-      ) {
-        pinkyKey.push(left[0]);
-      }
-      // Right
-      if (
-        mazeLayout[pinkyRight] !== 1 &&
-        mazeLayout[pinkyRight] !== 3 &&
-        mazeLayout[pinkyRight] !== 5 &&
-        pinkyLastMovement !== left[0]
-      ) {
-        pinkyKey.push(right[0]);
-      }
-      pinkyKey.filter((element) => element !== pinkyLastMovement);
-      let randomKey = pinkyKey[Math.floor(Math.random() * pinkyKey.length)];
-      pinkyLastMovement = randomKey;
+  pinkyInterval = setInterval(() => {
+    let pinkyTarget;
+    let pinkyKey = [];
+    let pinkyCalc = {};
+    let pinkyUp = positions.pinky - width;
+    let pinkyDown = positions.pinky + width;
+    let pinkyLeft = positions.pinky - 1;
+    let pinkyRight = positions.pinky + 1;
+    // Up
+    if (
+      mazeLayout[pinkyUp] !== 1 &&
+      mazeLayout[pinkyUp] !== 3 &&
+      mazeLayout[pinkyUp] !== 5 &&
+      pinkyLastMovement !== down[0]
+    ) {
+      pinkyKey.push(up[0]);
+      pinkyCalc[pinkyUp] = up[0];
+    }
+    // Down
+    if (
+      mazeLayout[pinkyDown] !== 1 &&
+      mazeLayout[pinkyDown] !== 3 &&
+      mazeLayout[pinkyDown] !== 5 &&
+      pinkyLastMovement !== up[0]
+    ) {
+      pinkyKey.push(down[0]);
+      pinkyCalc[pinkyDown] = down[0];
+    }
+    // Left
+    if (
+      mazeLayout[pinkyLeft] !== 1 &&
+      mazeLayout[pinkyLeft] !== 3 &&
+      mazeLayout[pinkyLeft] !== 5 &&
+      pinkyLastMovement !== right[0]
+    ) {
+      pinkyKey.push(left[0]);
+      pinkyCalc[pinkyLeft] = left[0];
+    }
+    // Right
+    if (
+      mazeLayout[pinkyRight] !== 1 &&
+      mazeLayout[pinkyRight] !== 3 &&
+      mazeLayout[pinkyRight] !== 5 &&
+      pinkyLastMovement !== left[0]
+    ) {
+      pinkyKey.push(right[0]);
+      pinkyCalc[pinkyRight] = right[0];
+    }
+    pinkyKey.filter((element) => element !== pinkyLastMovement); // This prevents the ghost from reversing itself
+    let randomKey = pinkyKey[Math.floor(Math.random() * pinkyKey.length)]; // This picks a random direction from the available
+    // set the last movement to this movement then trigger the movement
+
+    // Calculate pinkyTarget based on pacman movement - pinky targets 4 spaces in front of pacman
+    // If pacman facing up
+    if (up.includes(key)) {
+      pinkyTarget = positions.pacman - width * 4 - 4;
+    } else if (down.includes(key)) {
+      // If pacman facing down
+      pinkyTarget = positions.pacman + width * 4;
+    } else if (left.includes(key)) {
+      // If pacman facing left
+      pinkyTarget = positions.pacman - 4;
+    } else if (right.includes(key)) {
+      // If pacman facing right
+      pinkyTarget = positions.pacman + 4;
+    }
+
+    if (ghostMode === "frightened") {
+      pinkyLastMovement = randomKey; // Put this before movementManager
       movementManager(randomKey, "pinky");
-    }, gameSpeed);
-  }, gameSpeed * 3);
+    } else if (ghostMode === "chase") {
+      moveTowardsTarget(pinkyTarget, "pinky", pinkyCalc);
+    } else if (ghostMode === "scatter") {
+      moveTowardsTarget(28, "pinky", pinkyCalc);
+    }
+  }, gameSpeed);
 }
 
 function moveClyde(character = "clyde") {
   // Do some initial movement to get out of the cage
   if (document.getElementById("408").classList.contains("clyde")) {
     singleMovement(character, "left");
-    console.log("clyde move left");
     setTimeout(() => {
       singleMovement(character, "left");
     }, gameSpeed);
@@ -460,59 +617,85 @@ function moveClyde(character = "clyde") {
     setTimeout(() => {
       singleMovement(character, "up");
     }, gameSpeed * 3);
-    // setTimeout(() => {
-    //   singleMovement(character, "up");
-    // }, gameSpeed * 4);
+    setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed * 4);
   }
-  setTimeout(() => {
-    clydeInterval = setInterval(() => {
-      let clydeKey = [];
-      let clydeUp = positions.clyde - width;
-      let clydeDown = positions.clyde + width;
-      let clydeLeft = positions.clyde - 1;
-      let clydeRight = positions.clyde + 1;
-      // Up
-      if (
-        mazeLayout[clydeUp] !== 1 &&
-        mazeLayout[clydeUp] !== 3 &&
-        mazeLayout[clydeUp] !== 5 &&
-        clydeLastMovement !== down[0]
-      ) {
-        clydeKey.push(up[0]);
-      }
-      // Down
-      if (
-        mazeLayout[clydeDown] !== 1 &&
-        mazeLayout[clydeDown] !== 3 &&
-        mazeLayout[clydeDown] !== 5 &&
-        clydeLastMovement !== up[0]
-      ) {
-        clydeKey.push(down[0]);
-      }
-      // Left
-      if (
-        mazeLayout[clydeLeft] !== 1 &&
-        mazeLayout[clydeLeft] !== 3 &&
-        mazeLayout[clydeLeft] !== 5 &&
-        clydeLastMovement !== right[0]
-      ) {
-        clydeKey.push(left[0]);
-      }
-      // Right
-      if (
-        mazeLayout[clydeRight] !== 1 &&
-        mazeLayout[clydeRight] !== 3 &&
-        mazeLayout[clydeRight] !== 5 &&
-        clydeLastMovement !== left[0]
-      ) {
-        clydeKey.push(right[0]);
-      }
-      clydeKey.filter((element) => element !== clydeLastMovement);
-      let randomKey = clydeKey[Math.floor(Math.random() * clydeKey.length)];
-      clydeLastMovement = randomKey;
+  clydeInterval = setInterval(() => {
+    let clydeTarget;
+    let clydeKey = [];
+    let clydeCalc = {};
+    let clydeUp = positions.clyde - width;
+    let clydeDown = positions.clyde + width;
+    let clydeLeft = positions.clyde - 1;
+    let clydeRight = positions.clyde + 1;
+    let clydeMode;
+    // Up
+    if (
+      mazeLayout[clydeUp] !== 1 &&
+      mazeLayout[clydeUp] !== 3 &&
+      mazeLayout[clydeUp] !== 5 &&
+      clydeLastMovement !== down[0]
+    ) {
+      clydeKey.push(up[0]);
+      clydeCalc[clydeUp] = up[0];
+    }
+    // Down
+    if (
+      mazeLayout[clydeDown] !== 1 &&
+      mazeLayout[clydeDown] !== 3 &&
+      mazeLayout[clydeDown] !== 5 &&
+      clydeLastMovement !== up[0]
+    ) {
+      clydeKey.push(down[0]);
+      clydeCalc[clydeDown] = down[0];
+    }
+    // Left
+    if (
+      mazeLayout[clydeLeft] !== 1 &&
+      mazeLayout[clydeLeft] !== 3 &&
+      mazeLayout[clydeLeft] !== 5 &&
+      clydeLastMovement !== right[0]
+    ) {
+      clydeKey.push(left[0]);
+      clydeCalc[clydeLeft] = left[0];
+    }
+    // Right
+    if (
+      mazeLayout[clydeRight] !== 1 &&
+      mazeLayout[clydeRight] !== 3 &&
+      mazeLayout[clydeRight] !== 5 &&
+      clydeLastMovement !== left[0]
+    ) {
+      clydeKey.push(right[0]);
+      clydeCalc[clydeRight] = right[0];
+    }
+
+    // Clyde = blinky unless within 8 tiles of pacman then he switches to scatter mode
+
+    let clydeRow = Math.ceil(positions.clyde / width);
+    let clydeColumn = (positions.clyde % width) + 1;
+    let pacmanRow = Math.ceil(positions.pacman / width);
+    let pacmanColumn = (positions.pacman % width) + 1;
+    if (
+      Math.abs(clydeRow - pacmanRow) < 8 &&
+      Math.abs(clydeColumn - pacmanColumn) < 8
+    ) {
+      clydeMode = "scatter";
+    } else {
+      clydeMode = "chase";
+    }
+    clydeKey.filter((element) => element !== clydeLastMovement); // This prevents the ghost from reversing itself
+    let randomKey = clydeKey[Math.floor(Math.random() * clydeKey.length)]; // This picks a random direction from the available
+    if (ghostMode === "frightened") {
+      clydeLastMovement = randomKey; // Put this before movementManager
       movementManager(randomKey, "clyde");
-    }, gameSpeed);
-  }, gameSpeed * 5);
+    } else if (ghostMode === "scatter" || clydeMode === "scatter") {
+      moveTowardsTarget(813, "clyde", clydeCalc);
+    } else if (ghostMode === "chase") {
+      moveTowardsTarget(positions.pacman, "clyde", clydeCalc);
+    }
+  }, gameSpeed);
 }
 
 function movementManager(key = 37, character) {
@@ -578,8 +761,52 @@ function singleMovement(character, direction) {
   addCharacter(positions[character], character);
 }
 
+function gameTimings() {
+  gameClockInterval = setInterval(() => {
+    gameClock++;
+    console.log(ghostMode);
+    console.log(gameClock);
+    // Use predetermined times to switch between chase and scatter modes until eventually the ghosts only chase
+    if (ghostMode !== "frightened") {
+      if (gameClock >= 7 && gameClock < 27) {
+        ghostMode = "chase";
+      } else if (gameClock >= 27 && gameClock < 34) {
+        ghostMode = "scatter";
+      } else if (gameClock >= 34 && gameClock < 54) {
+        ghostMode = "chase";
+      } else if (gameClock >= 54 && gameClock < 59) {
+        ghostMode = "scatter";
+      } else if (gameClock >= 59 && gameClock < 79) {
+        ghostMode = "chase";
+      } else if (gameClock >= 79 && gameClock < 84) {
+        ghostMode = "scatter";
+      } else if (gameClock >= 84) {
+        ghostMode = "chase";
+      }
+    }
+  }, 1000);
+}
+
+function generateFruit() {
+  if (fruitCounter > 7) {
+    fruitCounter = 7;
+  }
+  let fruitGrid = document.getElementById("489");
+  fruitGrid.classList.add("fruit");
+  if (level < 8) {
+    fruitGrid.classList.add(bonuses[level - 1 + fruitCounter].name);
+    fruitCounter++;
+  } else if (level >= 8 && level < 20) {
+    fruitGrid.classList.add(bonuses[level - 1 + fruitCounter].name);
+    fruitCounter++;
+  } else if (level >= 20) {
+    fruitGrid.classList.add(bonuses[6].name);
+  }
+  bonusDisplay.classList = bonuses[level - 1 + fruitCounter].name;
+}
+
 function clearAllIntervals() {
-  clearInterval(binkyInterval);
+  clearInterval(blinkyInterval);
   clearInterval(inkyInterval);
   clearInterval(pinkyInterval);
   clearInterval(clydeInterval);
@@ -587,9 +814,11 @@ function clearAllIntervals() {
   clearTimeout(pinkyTimeout);
   clearTimeout(clydeTimeout);
   clearInterval(pacmanMovementInterval);
-  blinking = false;
   clearInterval(blinkingInterval);
   clearTimeout(chaseTimeout);
+  clearInterval(gameClockInterval);
+  fruitCounter = 0;
+  blinking = false;
   moving = false;
   ghostMode = "chase";
 }
@@ -597,6 +826,7 @@ function clearAllIntervals() {
 // If pacman eats all the pellets
 function endScreen() {
   // Clear all the grid classes
+  activeGame = false;
   document.removeEventListener("keydown", movePacman);
   gridWrapper.innerHTML = "";
   // Stop ghost movement
@@ -604,7 +834,7 @@ function endScreen() {
   pelletCount = 240;
   positions = {
     pacman: 657,
-    binky: 321,
+    blinky: 321,
     inky: 404,
     pinky: 406,
     clyde: 408,
@@ -615,6 +845,7 @@ function endScreen() {
   backgroundDisplay.style.filter = "invert(0)";
   // Increment the difficulty
   gameSpeed += 50;
+  level++;
   // regenerate the board
   setTimeout(() => {
     mazeGenerator();
@@ -651,26 +882,29 @@ function blinkingObjectsStart() {
 }
 
 function collisionCheck() {
-  if (positions.pacman === positions.binky && ghostMode === "frightened") {
-    ghostDeath("binky");
-  } else if (positions.pacman === positions.inky && ghostMode === "frightened") {
-    ghostDeath("inky");
-  } else if (positions.pacman === positions.pinky && ghostMode === "frightened") {
-    ghostDeath("pinky");
-  } else if (positions.pacman === positions.clyde && ghostMode === "frightened") {
-    ghostDeath("clyde");
-  } else if (
-    positions.pacman === positions.binky ||
-    positions.pacman === positions.inky ||
-    positions.pacman === positions.pinky ||
-    positions.pacman === positions.clyde
-  ) {
-    deathSequence();
+  if (activeGame) {
+    if (positions.pacman === positions.blinky && ghostMode === "frightened") {
+      ghostDeath("blinky");
+    } else if (positions.pacman === positions.inky && ghostMode === "frightened") {
+      ghostDeath("inky");
+    } else if (positions.pacman === positions.pinky && ghostMode === "frightened") {
+      ghostDeath("pinky");
+    } else if (positions.pacman === positions.clyde && ghostMode === "frightened") {
+      ghostDeath("clyde");
+    } else if (
+      positions.pacman === positions.blinky ||
+      positions.pacman === positions.inky ||
+      positions.pacman === positions.pinky ||
+      positions.pacman === positions.clyde
+    ) {
+      deathSequence();
+    }
   }
 }
 
 function deathSequence() {
   // game pauses
+  activeGame = false;
   clearAllIntervals();
   document.removeEventListener("keydown", movePacman);
 
@@ -685,7 +919,7 @@ function deathSequence() {
       for (const [key] of Object.entries(positions)) {
         removeCharacter(key);
       }
-      resetPosition();
+      resetPosition(); // The position of this is the problem
       for (const [key, value] of Object.entries(positions)) {
         addCharacter(value, key);
       }
@@ -717,7 +951,7 @@ function deathAnimation(repeats = 1) {
 function resetPosition() {
   positions = {
     pacman: 657,
-    binky: 321,
+    blinky: 321,
     inky: 404,
     pinky: 406,
     clyde: 408,
@@ -740,11 +974,11 @@ function ghostDeath(character) {
   ghostsEaten++;
   removeCharacter(character);
 
-  if (character === "binky") {
-    clearInterval(binkyInterval);
+  if (character === "blinky") {
+    clearInterval(blinkyInterval);
     positions[character] = 321;
     addCharacter(positions[character], character);
-    moveBinky();
+    moveBlinky();
   } else if (character === "inky") {
     clearInterval(inkyInterval);
     positions[character] = 404;
@@ -801,3 +1035,5 @@ splashDisplay.addEventListener("click", () => {
 // Frightened
 
 // Eaten
+
+// Animate each of the characters
