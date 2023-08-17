@@ -78,20 +78,34 @@ let highScore =
     ? 0
     : parseInt(localStorage.getItem("highscore"));
 let lives = 2;
+
+class Character {
+  constructor(name, position) {
+    (this.name = name),
+      (this.moving = false),
+      this.lastMovement, // Done
+      this.interval, // Done
+      this.timeout, // Done
+      (this.position = position),
+      (this.key = []);
+    this.calc = {};
+    this.up, this.down, this.left, this.right;
+  }
+}
+
+let blinky = new Character("blinky", 321);
+let inky = new Character("inky", 404);
+let pinky = new Character("pinky", 406);
+let clyde = new Character("clyde", 408);
+let pacman = new Character("pacman", 657);
+let characterObjects = [blinky, inky, pinky, clyde, pacman];
+let ghostObjects = [blinky, inky, pinky, clyde];
+
 let ghosts = ["blinky", "inky", "pinky", "clyde"];
 let pelletCount = 240;
 let key;
 let level;
-let moving = false;
-let blinkyMoving = false;
-let inkyMoving = false;
-let pinkyMoving = false;
-let clydeMoving = false;
 let lastWorkingKey;
-let blinkyLastMovement;
-let inkyLastMovement;
-let pinkyLastMovement;
-let clydeLastMovement;
 let chase = false;
 let ghostMode;
 let ghostsEaten = 1;
@@ -100,16 +114,8 @@ let gameClock = 0;
 
 // Interval initialisation
 let gameClockInterval;
-let blinkyInterval;
-let inkyInterval;
-let pinkyInterval;
-let clydeInterval;
-let inkyTimeout;
-let pinkyTimeout;
-let clydeTimeout;
 let backgroundInterval;
 let exitInterval;
-let pacmanMovementInterval;
 let blinkingInterval;
 let chaseTimeout;
 
@@ -175,14 +181,14 @@ function mazeGenerator() {
     gridWrapper.append(gridItem);
   }
   generatePositions();
-}
+} // Refactored
 
 function generatePositions() {
   // For each character in positions add a class to its starting position
-  for (const [key, value] of Object.entries(positions)) {
-    addCharacter(value, key);
-  }
-}
+  characterObjects.forEach((character) => {
+    addCharacter(character.position, character.name);
+  });
+} // Refactored
 
 function scoreUpdate(amount = 0) {
   currentScoreDisplay.innerHTML = currentScore += amount;
@@ -193,7 +199,7 @@ function scoreUpdate(amount = 0) {
     lives++;
     livesUpdate();
   }
-}
+} // Refactored
 
 function livesUpdate(lostLife = 0) {
   livesDisplay.innerHTML = "";
@@ -203,12 +209,12 @@ function livesUpdate(lostLife = 0) {
     lifeDisplay.classList.add("life");
     livesDisplay.append(lifeDisplay);
   }
-}
+} // Refactored
 
 function bonusUpdate() {
   // bonus.push(fruit)
   bonusDisplay.classList.add("cherry");
-}
+} // Refactored
 
 function gameIntro() {
   splashDisplay.style.display = "none";
@@ -220,31 +226,31 @@ function gameIntro() {
   audio.play();
   level = 1;
   setTimeout(gameStart, 0); //4500
-}
+} // Refactored
 
 function gameStart() {
   blinking = true;
   activeGame = true;
   ghostMode = "scatter";
-  blinkingObjectsStart();
   readyDisplay.style.display = "none";
   document.addEventListener("keydown", movePacman);
-  moveBlinky();
   audio.src = "sounds/pacman_chomp.wav";
   fruitAudio.src = "sounds/pacman_eatfruit.wav";
-  inkyTimeout = setTimeout(moveInky, 5000);
-  pinkyTimeout = setTimeout(movePinky, 10000);
-  clydeTimeout = setTimeout(moveClyde, 15000);
+  moveBlinky();
+  inky.timeout = setTimeout(moveInky, 5000);
+  pinky.timeout = setTimeout(movePinky, 10000);
+  clyde.timeout = setTimeout(moveClyde, 15000);
+  blinkingObjectsStart();
   gameTimings();
   gameClock = 0;
-}
+} // Refactored
 
 function addCharacter(position, character) {
   if (ghosts.includes(character) && ghostMode === "frightened") {
     gridReference[position].classList.add("scared");
     gridReference[position].classList.add(character);
   } else gridReference[position].classList.add(character);
-}
+} // Refactored
 
 function removeCharacter(character) {
   if (ghosts.includes(character) && ghostMode === "frightened") {
@@ -252,14 +258,14 @@ function removeCharacter(character) {
     gridReference[positions[character]].classList.remove("scared");
   } else gridReference[positions[character]].classList.remove(character);
   gridReference[positions[character]].classList.remove("scared");
-}
+} // Refactored
 
 function movePacman(event) {
   key = event.keyCode;
 
-  if (!moving) {
-    moving = true;
-    pacmanMovementInterval = setInterval(() => {
+  if (!pacman.moving) {
+    pacman.moving = true;
+    pacman.interval = setInterval(() => {
       movementManager(key, "pacman");
       let currentPosition = document.getElementById(positions.pacman);
       if (currentPosition.classList.contains("pellet")) {
@@ -302,7 +308,7 @@ function movePacman(event) {
 
 // Logic for 'random' ghost movement, different functions as eventually they have different movements
 function moveBlinky() {
-  blinkyInterval = setInterval(() => {
+  blinky.interval = setInterval(() => {
     let blinkyKey = [];
     let blinkyCalc = {};
     let blinkyUp = positions.blinky - width;
@@ -314,7 +320,7 @@ function moveBlinky() {
       mazeLayout[blinkyUp] !== 1 &&
       mazeLayout[blinkyUp] !== 3 &&
       mazeLayout[blinkyUp] !== 5 &&
-      blinkyLastMovement !== down[0]
+      blinky.lastMovement !== down[0]
     ) {
       blinkyKey.push(up[0]);
       blinkyCalc[blinkyUp] = up[0];
@@ -324,7 +330,7 @@ function moveBlinky() {
       mazeLayout[blinkyDown] !== 1 &&
       mazeLayout[blinkyDown] !== 3 &&
       mazeLayout[blinkyDown] !== 5 &&
-      blinkyLastMovement !== up[0]
+      blinky.lastMovement !== up[0]
     ) {
       blinkyKey.push(down[0]);
       blinkyCalc[blinkyDown] = down[0];
@@ -334,7 +340,7 @@ function moveBlinky() {
       mazeLayout[blinkyLeft] !== 1 &&
       mazeLayout[blinkyLeft] !== 3 &&
       mazeLayout[blinkyLeft] !== 5 &&
-      blinkyLastMovement !== right[0]
+      blinky.lastMovement !== right[0]
     ) {
       blinkyKey.push(left[0]);
       blinkyCalc[blinkyLeft] = left[0];
@@ -344,16 +350,16 @@ function moveBlinky() {
       mazeLayout[blinkyRight] !== 1 &&
       mazeLayout[blinkyRight] !== 3 &&
       mazeLayout[blinkyRight] !== 5 &&
-      blinkyLastMovement !== left[0]
+      blinky.lastMovement !== left[0]
     ) {
       blinkyKey.push(right[0]);
       blinkyCalc[blinkyRight] = right[0];
     }
-    blinkyKey.filter((element) => element !== blinkyLastMovement); // This prevents the ghost from reversing itself
+    blinkyKey.filter((element) => element !== blinky.lastMovement); // This prevents the ghost from reversing itself
     let randomKey = blinkyKey[Math.floor(Math.random() * blinkyKey.length)]; // This picks a random direction from the available
 
     if (ghostMode === "frightened") {
-      blinkyLastMovement = randomKey; // Put this before movementManager
+      blinky.lastMovement = randomKey; // Put this before movementManager
       movementManager(randomKey, "blinky");
     } else if (ghostMode === "chase") {
       moveTowardsTarget(positions.pacman, "blinky", blinkyCalc); // blinkys target is pacmans position
@@ -384,13 +390,13 @@ function moveTowardsTarget(target, character, directionObject) {
       towardsKey = direction;
       // Prevent backtracing
       if (character === "blinky") {
-        blinkyLastMovement = towardsKey;
+        blinky.lastMovement = towardsKey;
       } else if (character === "inky") {
-        inkyLastMovement = towardsKey;
+        inky.lastMovement = towardsKey;
       } else if (character === "pinky") {
-        pinkyLastMovement = towardsKey;
+        pinky.lastMovement = towardsKey;
       } else if (character === "clyde") {
-        clydeLastMovement = towardsKey;
+        clyde.lastMovement = towardsKey;
       }
     }
   }
@@ -408,7 +414,7 @@ function moveInky(character = "inky") {
       singleMovement(character, "up");
     }, gameSpeed * 1.9);
   }
-  inkyInterval = setInterval(() => {
+  inky.interval = setInterval(() => {
     let inkyTarget;
     let inkyKey = [];
     let inkyCalc = {};
@@ -421,7 +427,7 @@ function moveInky(character = "inky") {
       mazeLayout[inkyUp] !== 1 &&
       mazeLayout[inkyUp] !== 3 &&
       mazeLayout[inkyUp] !== 5 &&
-      inkyLastMovement !== down[0]
+      inky.lastMovement !== down[0]
     ) {
       inkyKey.push(up[0]);
       inkyCalc[inkyUp] = up[0];
@@ -431,7 +437,7 @@ function moveInky(character = "inky") {
       mazeLayout[inkyDown] !== 1 &&
       mazeLayout[inkyDown] !== 3 &&
       mazeLayout[inkyDown] !== 5 &&
-      inkyLastMovement !== up[0]
+      inky.lastMovement !== up[0]
     ) {
       inkyKey.push(down[0]);
       inkyCalc[inkyDown] = down[0];
@@ -441,7 +447,7 @@ function moveInky(character = "inky") {
       mazeLayout[inkyLeft] !== 1 &&
       mazeLayout[inkyLeft] !== 3 &&
       mazeLayout[inkyLeft] !== 5 &&
-      inkyLastMovement !== right[0]
+      inky.lastMovement !== right[0]
     ) {
       inkyKey.push(left[0]);
       inkyCalc[inkyLeft] = left[0];
@@ -451,12 +457,12 @@ function moveInky(character = "inky") {
       mazeLayout[inkyRight] !== 1 &&
       mazeLayout[inkyRight] !== 3 &&
       mazeLayout[inkyRight] !== 5 &&
-      inkyLastMovement !== left[0]
+      inky.lastMovement !== left[0]
     ) {
       inkyKey.push(right[0]);
       inkyCalc[inkyRight] = right[0];
     }
-    inkyKey.filter((element) => element !== inkyLastMovement); // This prevents the ghost from reversing itself
+    inkyKey.filter((element) => element !== inky.lastMovement); // This prevents the ghost from reversing itself
     let randomKey = inkyKey[Math.floor(Math.random() * inkyKey.length)]; // This picks a random direction from the available
     // set the last movement to this movement then trigger the movement
 
@@ -509,7 +515,7 @@ function moveInky(character = "inky") {
     inkyTarget = (inkyTargetRow - 1) * width + Math.abs(inkyTargetColumn);
 
     if (ghostMode === "frightened") {
-      inkyLastMovement = randomKey; // Put this before movementManager
+      inky.lastMovement = randomKey; // Put this before movementManager
       movementManager(randomKey, "inky");
     } else if (ghostMode === "chase") {
       moveTowardsTarget(inkyTarget, "inky", inkyCalc);
@@ -526,7 +532,7 @@ function movePinky(character = "pinky") {
       singleMovement(character, "up");
     }, gameSpeed);
   }
-  pinkyInterval = setInterval(() => {
+  pinky.interval = setInterval(() => {
     let pinkyTarget;
     let pinkyKey = [];
     let pinkyCalc = {};
@@ -539,7 +545,7 @@ function movePinky(character = "pinky") {
       mazeLayout[pinkyUp] !== 1 &&
       mazeLayout[pinkyUp] !== 3 &&
       mazeLayout[pinkyUp] !== 5 &&
-      pinkyLastMovement !== down[0]
+      pinky.lastMovement !== down[0]
     ) {
       pinkyKey.push(up[0]);
       pinkyCalc[pinkyUp] = up[0];
@@ -549,7 +555,7 @@ function movePinky(character = "pinky") {
       mazeLayout[pinkyDown] !== 1 &&
       mazeLayout[pinkyDown] !== 3 &&
       mazeLayout[pinkyDown] !== 5 &&
-      pinkyLastMovement !== up[0]
+      pinky.lastMovement !== up[0]
     ) {
       pinkyKey.push(down[0]);
       pinkyCalc[pinkyDown] = down[0];
@@ -559,7 +565,7 @@ function movePinky(character = "pinky") {
       mazeLayout[pinkyLeft] !== 1 &&
       mazeLayout[pinkyLeft] !== 3 &&
       mazeLayout[pinkyLeft] !== 5 &&
-      pinkyLastMovement !== right[0]
+      pinky.lastMovement !== right[0]
     ) {
       pinkyKey.push(left[0]);
       pinkyCalc[pinkyLeft] = left[0];
@@ -569,12 +575,12 @@ function movePinky(character = "pinky") {
       mazeLayout[pinkyRight] !== 1 &&
       mazeLayout[pinkyRight] !== 3 &&
       mazeLayout[pinkyRight] !== 5 &&
-      pinkyLastMovement !== left[0]
+      pinky.lastMovement !== left[0]
     ) {
       pinkyKey.push(right[0]);
       pinkyCalc[pinkyRight] = right[0];
     }
-    pinkyKey.filter((element) => element !== pinkyLastMovement); // This prevents the ghost from reversing itself
+    pinkyKey.filter((element) => element !== pinky.lastMovement); // This prevents the ghost from reversing itself
     let randomKey = pinkyKey[Math.floor(Math.random() * pinkyKey.length)]; // This picks a random direction from the available
     // set the last movement to this movement then trigger the movement
 
@@ -594,7 +600,7 @@ function movePinky(character = "pinky") {
     }
 
     if (ghostMode === "frightened") {
-      pinkyLastMovement = randomKey; // Put this before movementManager
+      pinky.lastMovement = randomKey; // Put this before movementManager
       movementManager(randomKey, "pinky");
     } else if (ghostMode === "chase") {
       moveTowardsTarget(pinkyTarget, "pinky", pinkyCalc);
@@ -621,7 +627,7 @@ function moveClyde(character = "clyde") {
       singleMovement(character, "up");
     }, gameSpeed * 4);
   }
-  clydeInterval = setInterval(() => {
+  clyde.interval = setInterval(() => {
     let clydeTarget;
     let clydeKey = [];
     let clydeCalc = {};
@@ -635,7 +641,7 @@ function moveClyde(character = "clyde") {
       mazeLayout[clydeUp] !== 1 &&
       mazeLayout[clydeUp] !== 3 &&
       mazeLayout[clydeUp] !== 5 &&
-      clydeLastMovement !== down[0]
+      clyde.lastMovement !== down[0]
     ) {
       clydeKey.push(up[0]);
       clydeCalc[clydeUp] = up[0];
@@ -645,7 +651,7 @@ function moveClyde(character = "clyde") {
       mazeLayout[clydeDown] !== 1 &&
       mazeLayout[clydeDown] !== 3 &&
       mazeLayout[clydeDown] !== 5 &&
-      clydeLastMovement !== up[0]
+      clyde.lastMovement !== up[0]
     ) {
       clydeKey.push(down[0]);
       clydeCalc[clydeDown] = down[0];
@@ -655,7 +661,7 @@ function moveClyde(character = "clyde") {
       mazeLayout[clydeLeft] !== 1 &&
       mazeLayout[clydeLeft] !== 3 &&
       mazeLayout[clydeLeft] !== 5 &&
-      clydeLastMovement !== right[0]
+      clyde.lastMovement !== right[0]
     ) {
       clydeKey.push(left[0]);
       clydeCalc[clydeLeft] = left[0];
@@ -665,7 +671,7 @@ function moveClyde(character = "clyde") {
       mazeLayout[clydeRight] !== 1 &&
       mazeLayout[clydeRight] !== 3 &&
       mazeLayout[clydeRight] !== 5 &&
-      clydeLastMovement !== left[0]
+      clyde.lastMovement !== left[0]
     ) {
       clydeKey.push(right[0]);
       clydeCalc[clydeRight] = right[0];
@@ -685,10 +691,10 @@ function moveClyde(character = "clyde") {
     } else {
       clydeMode = "chase";
     }
-    clydeKey.filter((element) => element !== clydeLastMovement); // This prevents the ghost from reversing itself
+    clydeKey.filter((element) => element !== clyde.lastMovement); // This prevents the ghost from reversing itself
     let randomKey = clydeKey[Math.floor(Math.random() * clydeKey.length)]; // This picks a random direction from the available
     if (ghostMode === "frightened") {
-      clydeLastMovement = randomKey; // Put this before movementManager
+      clyde.lastMovement = randomKey; // Put this before movementManager
       movementManager(randomKey, "clyde");
     } else if (ghostMode === "scatter" || clydeMode === "scatter") {
       moveTowardsTarget(813, "clyde", clydeCalc);
@@ -764,8 +770,6 @@ function singleMovement(character, direction) {
 function gameTimings() {
   gameClockInterval = setInterval(() => {
     gameClock++;
-    console.log(ghostMode);
-    console.log(gameClock);
     // Use predetermined times to switch between chase and scatter modes until eventually the ghosts only chase
     if (ghostMode !== "frightened") {
       if (gameClock >= 7 && gameClock < 27) {
@@ -806,20 +810,20 @@ function generateFruit() {
 }
 
 function clearAllIntervals() {
-  clearInterval(blinkyInterval);
-  clearInterval(inkyInterval);
-  clearInterval(pinkyInterval);
-  clearInterval(clydeInterval);
-  clearTimeout(inkyTimeout);
-  clearTimeout(pinkyTimeout);
-  clearTimeout(clydeTimeout);
-  clearInterval(pacmanMovementInterval);
+  clearInterval(blinky.interval);
+  clearInterval(inky.interval);
+  clearInterval(pinky.interval);
+  clearInterval(clyde.interval);
+  clearTimeout(inky.timeout);
+  clearTimeout(pinky.timeout);
+  clearTimeout(clyde.timeout);
+  clearInterval(pacman.interval);
   clearInterval(blinkingInterval);
   clearTimeout(chaseTimeout);
   clearInterval(gameClockInterval);
   fruitCounter = 0;
   blinking = false;
-  moving = false;
+  pacman.moving = false;
   ghostMode = "chase";
 }
 
@@ -920,9 +924,7 @@ function deathSequence() {
         removeCharacter(key);
       }
       resetPosition(); // The position of this is the problem
-      for (const [key, value] of Object.entries(positions)) {
-        addCharacter(value, key);
-      }
+      generatePositions();
       readyDisplay.style.display = "block";
     }, 1500);
     // Display the ready message for 1 second
@@ -956,6 +958,10 @@ function resetPosition() {
     pinky: 406,
     clyde: 408,
   };
+  blinky.position = 321;
+  inky.position = 404;
+  pinky.position = 406;
+  clyde.position = 408;
 }
 
 function frightenedTrigger() {
@@ -975,36 +981,27 @@ function ghostDeath(character) {
   removeCharacter(character);
 
   if (character === "blinky") {
-    clearInterval(blinkyInterval);
+    clearInterval(blinky.interval);
     positions[character] = 321;
     addCharacter(positions[character], character);
     moveBlinky();
   } else if (character === "inky") {
-    clearInterval(inkyInterval);
+    clearInterval(inky.interval);
     positions[character] = 404;
     addCharacter(positions[character], character);
     moveInky();
   } else if (character === "pinky") {
-    clearInterval(pinkyInterval);
+    clearInterval(pinky.interval);
     positions[character] = 406;
     addCharacter(positions[character], character);
     movePinky();
   } else if (character === "clyde") {
-    clearInterval(clydeInterval);
+    clearInterval(clyde.interval);
     positions[character] = 408;
     addCharacter(positions[character], character);
     moveClyde();
   }
 }
-
-// Timeout for ghosts staying inside the center
-
-// Logic for collision between:
-// * Pacman and pellet
-// * Pacman and walls
-// * Ghosts and walls
-// Pacman and Ghosts (scared) gain points and move ghost back to start
-// * Pacman and Ghosts (chase) lose life
 
 // ! Events
 
@@ -1016,24 +1013,5 @@ splashDisplay.addEventListener("click", () => {
 // Trigger events on keypress see line 171
 
 // * ----- STRETCH CONTENT -----
-
-// Ghosts to have complex movement based on their name/'personality'
-
-// Research timings for fruit appearing and score etc.
-// Pacman and bonuses
-
-// Blinky - always takes the shortest path to pacman
-// Pinky - tries to get to the point 4 spaces in front of pacman
-// Inky
-// Clyde -
-
-// Ghost modes
-// Scatter
-
-// Chase
-
-// Frightened
-
-// Eaten
 
 // Animate each of the characters

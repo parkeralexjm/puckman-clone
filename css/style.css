@@ -127,6 +127,15 @@ h2 > span {
   background-position: center;
 }
 
+.blinky.dead,
+.inky.dead,
+.pinky.dead,
+.clyde.dead {
+  background-image: url(/images/dead-left.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 .inky {
   background-image: url(/images/inky-up1.png);
   background-repeat: no-repeat;
