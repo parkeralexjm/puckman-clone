@@ -4,6 +4,8 @@
 
 * {
   font-family: "Press Start 2P", cursive;
+  font-weight: lighter;
+  user-select: none;
 }
 
 body {
@@ -24,11 +26,14 @@ header {
   background-color: black;
   color: white;
   display: flex;
-  justify-content: space-around;
-  user-select: none;
+  justify-content: space-evenly;
 }
 
 /* * Player */
+#player,
+#highscore {
+  text-align: center;
+}
 
 /* * Highscore */
 
@@ -39,7 +44,6 @@ main {
   background-repeat: no-repeat;
   background-size: contain;
   height: 744px;
-  user-select: none;
 }
 
 body > h2 {
@@ -64,7 +68,7 @@ body > h2 {
   padding-bottom: 75px;
 }
 
-h2 > span {
+.peach > span {
   font-size: 0.8rem;
 }
 
@@ -107,7 +111,31 @@ h2 > span {
 }
 
 .pacman {
+  background-image: url(/images/p-start.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.pacman.left {
   background-image: url(/images/p-left1.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.pacman.right {
+  background-image: url(/images/p-right1.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.pacman.up {
+  background-image: url(/images/p-up1.png);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.pacman.down {
+  background-image: url(/images/p-down1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -123,15 +151,6 @@ h2 > span {
 .pinky.scared,
 .clyde.scared {
   background-image: url(/images/scared-blue1.png);
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.blinky.dead,
-.inky.dead,
-.pinky.dead,
-.clyde.dead {
-  background-image: url(/images/dead-left.png);
   background-repeat: no-repeat;
   background-position: center;
 }

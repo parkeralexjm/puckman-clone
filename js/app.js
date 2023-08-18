@@ -22,6 +22,8 @@ const readyDisplay = document.getElementById("ready");
 const audio = document.createElement("audio");
 const fruitAudio = document.createElement("audio");
 const audioIntermission = document.createElement("audio");
+const ghostAudio = document.createElement("audio");
+ghostAudio.volume = 0.5;
 fruitAudio.volume = 0.5;
 audio.volume = 0.5;
 audioIntermission.volume = 0.5;
@@ -151,7 +153,7 @@ let blinking = false;
 let activeGame = false;
 
 // ! Page Load
-
+bonusDisplay.classList.add("cherry");
 livesDisplay.innerHTML = "CREDIT 1";
 playerNameDisplay.innerHTML = "1UP";
 scoreUpdate();
@@ -162,33 +164,27 @@ function mazeGenerator() {
   gridReference = [];
   for (i = 0; i < gridSize; i++) {
     let gridItem = document.createElement("div");
-    // Give all the item a class of gridItem
     gridItem.classList.add("gridItem");
-    // Display the grid number on the item
     gridItem.id = i;
-    // gridItem.style.fontSize = "0.8rem";
     // Use the layout to initialise the pellets, power pellets and starting positions
     if (mazeLayout[i] === 0) {
       gridItem.classList.add("pellet");
     } else if (mazeLayout[i] === 2) {
       gridItem.classList.add("power-pellet");
     }
-
     gridItem.style.width = `${100 / width}%`;
     gridItem.style.height = `${100 / width}%`;
-    // Push the item to the gridReference (might be unecessary)
     gridReference.push(gridItem);
     gridWrapper.append(gridItem);
   }
   generatePositions();
-} // Refactored
+}
 
 function generatePositions() {
-  // For each character in positions add a class to its starting position
   characterObjects.forEach((character) => {
     addCharacter(character.position, character.name);
   });
-} // Refactored
+}
 
 function scoreUpdate(amount = 0) {
   currentScoreDisplay.innerHTML = currentScore += amount;
@@ -199,7 +195,7 @@ function scoreUpdate(amount = 0) {
     lives++;
     livesUpdate();
   }
-} // Refactored
+}
 
 function livesUpdate(lostLife = 0) {
   livesDisplay.innerHTML = "";
@@ -209,30 +205,24 @@ function livesUpdate(lostLife = 0) {
     lifeDisplay.classList.add("life");
     livesDisplay.append(lifeDisplay);
   }
-} // Refactored
-
-function bonusUpdate() {
-  // bonus.push(fruit)
-  bonusDisplay.classList.add("cherry");
-} // Refactored
+}
 
 function gameIntro() {
   splashDisplay.style.display = "none";
   readyDisplay.style.display = "block";
   mazeGenerator();
   livesUpdate();
-  bonusUpdate();
   audio.src = "sounds/pacman_beginning.wav";
   audio.play();
   level = 1;
   setTimeout(gameStart, 4500);
-} // Refactored
+}
 
 function gameStart() {
   blinking = true;
   activeGame = true;
   ghostMode = "scatter";
-  readyDisplay.style.display = "none";
+  readyDisplay.style.display = "none"; // Remove the ready! h2
   document.addEventListener("keydown", movePacman);
   audio.src = "sounds/pacman_chomp.wav";
   fruitAudio.src = "sounds/pacman_eatfruit.wav";
@@ -243,22 +233,28 @@ function gameStart() {
   blinkingObjectsStart();
   gameTimings();
   gameClock = 0;
-} // Refactored
+}
 
 function addCharacter(position, character) {
   if (ghosts.includes(character) && ghostMode === "frightened") {
     gridReference[position].classList.add("scared");
     gridReference[position].classList.add(character);
   } else gridReference[position].classList.add(character);
-} // Refactored
+}
 
 function removeCharacter(character) {
   if (ghosts.includes(character) && ghostMode === "frightened") {
     gridReference[positions[character]].classList.remove(character);
     gridReference[positions[character]].classList.remove("scared");
-  } else gridReference[positions[character]].classList.remove(character);
-  gridReference[positions[character]].classList.remove("scared");
-} // Refactored
+  } else {
+    gridReference[positions[character]].classList.remove(character);
+    gridReference[positions[character]].classList.remove("scared");
+    gridReference[positions[character]].classList.remove("up");
+    gridReference[positions[character]].classList.remove("down");
+    gridReference[positions[character]].classList.remove("left");
+    gridReference[positions[character]].classList.remove("right");
+  }
+}
 
 function movePacman(event) {
   key = event.keyCode;
@@ -302,7 +298,7 @@ function movePacman(event) {
         }
         fruitAudio.play();
       }
-    }, pacmanSpeed * 0.9);
+    }, gameSpeed * 0.9);
   }
 }
 
@@ -370,7 +366,6 @@ function moveBlinky() {
 }
 
 function moveTowardsTarget(target, character, directionObject) {
-  // compare row ** 2 + column ** 2
   let towardsKey;
   let lowestDistance = 100000;
   for (const [position, direction] of Object.entries(directionObject)) {
@@ -388,7 +383,6 @@ function moveTowardsTarget(target, character, directionObject) {
     if (distance < lowestDistance) {
       lowestDistance = distance;
       towardsKey = direction;
-      // Prevent backtracing
       if (character === "blinky") {
         blinky.lastMovement = towardsKey;
       } else if (character === "inky") {
@@ -747,11 +741,21 @@ function movementManager(key = 37, character) {
     addCharacter(positions[character], character);
     return;
   }
-  // Move character to the other end of the tunnel
+
   addCharacter(positions[character], character);
   collisionCheck();
+  // Add the direction that pacman is moving to the css
   if (character === "pacman") {
     lastWorkingKey = key;
+    if (up.includes(key)) {
+      gridReference[positions[character]].classList.add("up");
+    } else if (down.includes(key)) {
+      gridReference[positions[character]].classList.add("down");
+    } else if (left.includes(key)) {
+      gridReference[positions[character]].classList.add("left");
+    } else if (right.includes(key)) {
+      gridReference[positions[character]].classList.add("right");
+    }
   }
 }
 
@@ -829,13 +833,10 @@ function clearAllIntervals() {
   ghostMode = "chase";
 }
 
-// If pacman eats all the pellets
 function endScreen() {
-  // Clear all the grid classes
   activeGame = false;
   document.removeEventListener("keydown", movePacman);
   gridWrapper.innerHTML = "";
-  // Stop ghost movement
   clearAllIntervals();
   pelletCount = 240;
   positions = {
@@ -845,14 +846,11 @@ function endScreen() {
     pinky: 406,
     clyde: 408,
   };
-  // Flash the background white and blue
   backgroundDisplay.style.filter = "invert(0)";
   flashBackground();
   backgroundDisplay.style.filter = "invert(0)";
-  // Increment the difficulty
   gameSpeed += 50;
   level++;
-  // regenerate the board
   setTimeout(() => {
     mazeGenerator();
     readyDisplay.style.display = "block";
@@ -909,27 +907,22 @@ function collisionCheck() {
 }
 
 function deathSequence() {
-  // game pauses
   activeGame = false;
   clearAllIntervals();
   document.removeEventListener("keydown", movePacman);
-
-  // play death animation (and plays a sound)
   audio.src = "sounds/pacman_death.wav";
   audio.play();
   deathAnimation();
   if (lives > 0) {
     livesUpdate(1);
-    // Remake the screen but dont change the pellet classes or the count
     setTimeout(() => {
       for (const [key] of Object.entries(positions)) {
         removeCharacter(key);
       }
-      resetPosition(); // The position of this is the problem
+      resetPosition();
       generatePositions();
       readyDisplay.style.display = "block";
     }, 1500);
-    // Display the ready message for 1 second
     setTimeout(() => {
       gameStart();
     }, 3500);
@@ -974,14 +967,14 @@ function frightenedTrigger() {
   chaseTimeout = setTimeout(() => {
     ghostMode = "chase";
   }, 5500);
-  // Change all the ghosts to blue for 10 seconds
 }
 
 function ghostDeath(character) {
   scoreUpdate(200 * ghostsEaten);
+  ghostAudio.src = "/sounds/pacman_eatghost.wav";
+  ghostAudio.play();
   ghostsEaten++;
   removeCharacter(character);
-
   if (character === "blinky") {
     clearInterval(blinky.interval);
     positions[character] = 321;
@@ -1007,7 +1000,6 @@ function ghostDeath(character) {
 
 // ! Events
 
-// Start game on splash page
 splashDisplay.addEventListener("click", () => {
   gameIntro();
 });
@@ -1016,4 +1008,23 @@ splashDisplay.addEventListener("click", () => {
 
 // * ----- STRETCH CONTENT -----
 
+// * Add bonus fruit
+
+// Add movement behaviours for ghosts
+// * Blinky
+// * Inky
+// * Pinky
+// * Clyde
+
+// * Store highscore in localstorage
+
+// * Animate Pacman's death sequence
+
+// * Create timings to switch ghosts between scatter and chase modes
+
 // Animate each of the characters
+// * Pacman
+// ! Blinky
+// ! Inky
+// ! Pinky
+// ! Clyde
