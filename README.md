@@ -96,14 +96,30 @@ Added bonus fruit being generated after a certain number of pellets have been ea
 
 ### Game start
 
-### Ghost chase
+![gamestart](./README-files/gamestart.PNG)
 
-### Bonus fruit
+### Ghost chase and fruit
+
+![ghostchase](./README-files/ghostchase.PNG)
 
 ### Game over
 
+![gameover](./README-files/gameover.PNG)
+
 ## Key Lessons
+
+- Creating classes early to use attributes throughout the js
+- Storing variables into localstorage
+- Triggering audio based on events
+- Using flex-box to create a grid
 
 ## Challenges
 
+- Giving ghosts individual behaviours that used pacman's position as a vector for targetting that constantly changes.
+- Removing intervals that havent been created but will be due to timeouts
+- Preventing ghost movements to locations in the map that are not allowed while making them unable to reverse their direction
+
 ## Future improvements
+
+- Add images to show the direction that each ghost is moving
+- Create animations while characters are moving
