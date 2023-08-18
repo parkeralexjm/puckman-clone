@@ -877,7 +877,7 @@ function blinkingObjectsStart() {
         playerNameDisplay.style.filter === "opacity(1)" ? "opacity(0)" : "opacity(1)";
       [...powerPellets].forEach((element) => {
         element.style.backgroundImage =
-          element.style.backgroundImage === "" ? "url(images/power-pellet.png)" : "";
+          element.style.backgroundImage === "" ? "url(./images/power-pellet.png)" : "";
       });
     } else {
       clearInterval(blinkingInterval);
@@ -937,7 +937,7 @@ function deathAnimation(repeats = 1) {
   if (repeats < 13) {
     document.getElementsByClassName(
       "pacman"
-    )[0].style.backgroundImage = `url(images/p-dead${repeats}.png)`;
+    )[0].style.backgroundImage = `url(./images/p-dead${repeats}.png)`;
     setTimeout(() => deathAnimation(repeats + 1), 110);
   } else {
     document.getElementsByClassName("pacman")[0].style.backgroundImage = "";
