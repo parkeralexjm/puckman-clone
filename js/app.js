@@ -88,6 +88,9 @@ class Character {
       this.lastMovement, // Done
       this.interval, // Done
       this.timeout, // Done
+      this.timeout2,
+      this.timeout3,
+      this.timeout4,
       (this.position = position),
       (this.key = []);
     this.calc = {};
@@ -104,7 +107,7 @@ let characterObjects = [blinky, inky, pinky, clyde, pacman];
 let ghostObjects = [blinky, inky, pinky, clyde];
 
 let ghosts = ["blinky", "inky", "pinky", "clyde"];
-let pelletCount = 240;
+let pelletCount = 20;
 let key;
 let level;
 let lastWorkingKey;
@@ -401,12 +404,15 @@ function moveInky(character = "inky") {
   // Do some initial movement to get out of the cage
   if (document.getElementById("404").classList.contains("inky")) {
     singleMovement(character, "right");
-    setTimeout(() => {
+    inky.timeout2 = setTimeout(() => {
       singleMovement(character, "up");
     }, gameSpeed);
-    setTimeout(() => {
+    inky.timeout3 = setTimeout(() => {
       singleMovement(character, "up");
-    }, gameSpeed * 1.9);
+    }, gameSpeed * 2);
+    inky.timeout4 = setTimeout(() => {
+      singleMovement(character, "up");
+    }, gameSpeed * 3);
   }
   inky.interval = setInterval(() => {
     let inkyTarget;
@@ -523,10 +529,14 @@ function movePinky(character = "pinky") {
   if (document.getElementById("406").classList.contains("pinky")) {
     singleMovement(character, "up");
     pinky.position = 378;
-    setTimeout(() => {
+    pinky.timeout2 = setTimeout(() => {
       pinky.position = 350;
       singleMovement(character, "up");
     }, gameSpeed);
+    pinky.timeout3 = setTimeout(() => {
+      pinky.position = 350;
+      singleMovement(character, "up");
+    }, gameSpeed * 2);
   }
   pinky.interval = setInterval(() => {
     let pinkyTarget;
@@ -821,7 +831,12 @@ function clearAllIntervals() {
   clearInterval(pinky.interval);
   clearInterval(clyde.interval);
   clearTimeout(inky.timeout);
+  clearTimeout(inky.timeout2); // Bugfixes for leaving the pen
+  clearTimeout(inky.timeout3);
+  clearTimeout(inky.timeout4);
   clearTimeout(pinky.timeout);
+  clearTimeout(pinky.timeout2);
+  clearTimeout(pinky.timeout3);
   clearTimeout(clyde.timeout);
   clearInterval(pacman.interval);
   clearInterval(blinkingInterval);
@@ -835,9 +850,9 @@ function clearAllIntervals() {
 
 function endScreen() {
   activeGame = false;
+  clearAllIntervals();
   document.removeEventListener("keydown", movePacman);
   gridWrapper.innerHTML = "";
-  clearAllIntervals();
   pelletCount = 240;
   positions = {
     pacman: 657,
@@ -852,6 +867,10 @@ function endScreen() {
   gameSpeed += 50;
   level++;
   setTimeout(() => {
+    for (const [key] of Object.entries(positions)) {
+      removeCharacter(key);
+    }
+    resetPosition();
     mazeGenerator();
     readyDisplay.style.display = "block";
   }, 3500);
