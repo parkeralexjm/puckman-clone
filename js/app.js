@@ -107,7 +107,7 @@ let characterObjects = [blinky, inky, pinky, clyde, pacman];
 let ghostObjects = [blinky, inky, pinky, clyde];
 
 let ghosts = ["blinky", "inky", "pinky", "clyde"];
-let pelletCount = 20;
+let pelletCount = 240;
 let key;
 let level;
 let lastWorkingKey;
