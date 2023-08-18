@@ -92,6 +92,8 @@ Added bonus fruit being generated after a certain number of pellets have been ea
 
 ### Game load / Splash screen
 
+![splash](./README-files/splash.PNG)
+
 ### Game start
 
 ### Ghost chase

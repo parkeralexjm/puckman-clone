@@ -962,7 +962,7 @@ function resetPosition() {
 function frightenedTrigger() {
   ghostMode = "frightened";
   ghostsEaten = 1;
-  audioIntermission.src = "/sounds/pacman_intermission.wav";
+  audioIntermission.src = "sounds/pacman_intermission.wav";
   audioIntermission.play();
   chaseTimeout = setTimeout(() => {
     ghostMode = "chase";
@@ -971,7 +971,7 @@ function frightenedTrigger() {
 
 function ghostDeath(character) {
   scoreUpdate(200 * ghostsEaten);
-  ghostAudio.src = "/sounds/pacman_eatghost.wav";
+  ghostAudio.src = "sounds/pacman_eatghost.wav";
   ghostAudio.play();
   ghostsEaten++;
   removeCharacter(character);
