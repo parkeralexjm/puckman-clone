@@ -99,7 +99,7 @@ body > h2 {
 /* ! Class images */
 
 .pellet {
-  background-image: url(./images/pellet.png);
+  background-image: url(../images/pellet.png);
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -111,37 +111,37 @@ body > h2 {
 }
 
 .pacman {
-  background-image: url(./images/p-start.png);
+  background-image: url(../images/p-start.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .pacman.left {
-  background-image: url(./images/p-left1.png);
+  background-image: url(../images/p-left1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .pacman.right {
-  background-image: url(./images/p-right1.png);
+  background-image: url(../images/p-right1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .pacman.up {
-  background-image: url(./images/p-up1.png);
+  background-image: url(../images/p-up1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .pacman.down {
-  background-image: url(./images/p-down1.png);
+  background-image: url(../images/p-down1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .blinky {
-  background-image: url(./images/blinky-left1.png);
+  background-image: url(../images/blinky-left1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -150,31 +150,31 @@ body > h2 {
 .inky.scared,
 .pinky.scared,
 .clyde.scared {
-  background-image: url(./images/scared-blue1.png);
+  background-image: url(../images/scared-blue1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .inky {
-  background-image: url(./images/inky-up1.png);
+  background-image: url(../images/inky-up1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .pinky {
-  background-image: url(./images/pinky-down1.png);
+  background-image: url(../images/pinky-down1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .clyde {
-  background-image: url(./images/clyde-up1.png);
+  background-image: url(../images/clyde-up1.png);
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .cherry {
-  background-image: url(./images/bonus/cherry.png);
+  background-image: url(../images/bonus/cherry.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -183,7 +183,7 @@ body > h2 {
 }
 
 .strawberry {
-  background-image: url(./images/bonus/strawberry.png);
+  background-image: url(../images/bonus/strawberry.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -192,7 +192,7 @@ body > h2 {
 }
 
 .orange {
-  background-image: url(./images/bonus/orange.png);
+  background-image: url(../images/bonus/orange.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -201,7 +201,7 @@ body > h2 {
 }
 
 .apple {
-  background-image: url(./images/bonus/apple.png);
+  background-image: url(../images/bonus/apple.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -210,7 +210,7 @@ body > h2 {
 }
 
 .melon {
-  background-image: url(./images/bonus/melon.png);
+  background-image: url(../images/bonus/melon.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -219,7 +219,7 @@ body > h2 {
 }
 
 .galaxian {
-  background-image: url(./images/bonus/galaxian.png);
+  background-image: url(../images/bonus/galaxian.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -228,7 +228,7 @@ body > h2 {
 }
 
 .bell {
-  background-image: url(./images/bonus/bell.png);
+  background-image: url(../images/bonus/bell.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -237,7 +237,7 @@ body > h2 {
 }
 
 .key {
-  background-image: url(./images/bonus/key.png);
+  background-image: url(../images/bonus/key.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -265,7 +265,7 @@ footer {
 }
 
 .life {
-  background-image: url(./images/p-left1.png);
+  background-image: url(../images/p-left1.png);
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
