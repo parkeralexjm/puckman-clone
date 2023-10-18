@@ -106,20 +106,32 @@ Added bonus fruit being generated after a certain number of pellets have been ea
 
 ![gameover](./README-files/gameover.PNG)
 
-## Key Lessons
-
-- Creating classes early to use attributes throughout the js
-- Storing variables into localstorage
-- Triggering audio based on events
-- Using flex-box to create a grid
-
 ## Challenges
 
 - Giving ghosts individual behaviours that used pacman's position as a vector for targetting that constantly changes.
 - Removing intervals that havent been created but will be due to timeouts
 - Preventing ghost movements to locations in the map that are not allowed while making them unable to reverse their direction
 
+## Wins
+
+![movement](./README-files/MovementManager.PNG)
+
+- The main win during the project was coding the movements of the ghosts to accurately recreate the movement of each ghost. Since they have unique rules that apply to each one I had to create custom functions to describe their movement while allowing their intervals to sync their movement.
+
+![map](./README-files/grid.PNG)
+
+- Using an array to map out the whole pac-man map allowed me to use array indexing to provide logic for movement of both pac-man and the ghosts.
+
+## Key Lessons
+
+- Creating javaScript classes early on to use attributes throughout the js meant I could keep the functions and variables consistent throughout the code
+- Storing variables into localstorage meant that I could create a persistant local high-score function that would allow users to have some investment in replaying the game
+- Triggering audio based on events allowed clear feedback where I could not have smooth animations
+- Using flex-box to create a grid gave consistent, responsive structure to the page
+
+
 ## Future improvements
 
 - Add images to show the direction that each ghost is moving
 - Create animations while characters are moving
+- Display score values when pac-man eats fruit or scared ghosts
